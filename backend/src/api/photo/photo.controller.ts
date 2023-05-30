@@ -24,8 +24,7 @@ const getPhotos = async (req: Request, res: Response, next: any) => {
 
     try {
         const result = await query(`
-            SELECT *, ST_DistanceSphere($1::geometry,
-                ST_MakePoint($2,$3)::geometry) as $4
+            SELECT *, ST_DistanceSphere($1::geometry, ST_MakePoint($2,$3)::geometry) as $4
             FROM $5
             ORDER BY $4
             LIMIT $5;`, 
