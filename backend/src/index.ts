@@ -18,6 +18,9 @@ app.use(bodyParser.urlencoded( { extended: true } ))
 import { createDefaultTable } from './db/index'
 createDefaultTable()
 
+// set the static folder of images
+app.use(process.env.EXPRESS_STATIC_FILE_API!, express.static(process.env.MULTER_DESTINATION!))
+
 // import API
 import { router as api } from './api/index'
 
