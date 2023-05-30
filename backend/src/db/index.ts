@@ -23,35 +23,39 @@ pool.on('error', (err) => {
     console.log('Connected to database!')
 })*/
 
-const query = (text: string, params: any, callback: (err: Error, result: QueryResult<any>) => void) => {
+/*const query = (text: string, params: any, callback: (err: Error, result: QueryResult<any>) => void) => {
     return pool.query(text, params, callback)
+}*/
+
+const query = (text: string, params: any) => {
+    return pool.query(text, params)
 }
 
-const createDefaultTable = () => {
-    query(`
-        CREATE TABLE IF NOT EXISTS ${process.env.POSTGRES_COLLECTIONS_TABLE} (
-            ${process.env.POSTGRES_COLLECTIONS_TABLE_ID} SERIAL PRIMARY KEY,
-            ${process.env.POSTGRES_COLLECTIONS_TABLE_NAME} VARCHAR NOT NULL,
-            ${process.env.POSTGRES_COLLECTIONS_TABLE_DESC} VARCHAR,
-            ${process.env.POSTGRES_COLLECTIONS_TABLE_TIMESTAMP} TIMESTAMP NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS ${process.env.POSTGRES_PHOTOS_TABLE} (
-            ${process.env.POSTGRES_PHOTOS_TABLE_ID} SERIAL PRIMARY KEY,
-            ${process.env.POSTGRES_PHOTOS_TABLE_COLLECTION_FK} INT,
-            ${process.env.POSTGRES_PHOTOS_TABLE_FILENAME} VARCHAR,
-            ${process.env.POSTGRES_PHOTOS_TABLE_PHOTO_POSITION} POINT NOT NULL,
-            ${process.env.POSTGRES_PHOTOS_TABLE_TIMESTAMP} TIMESTAMP NOT NULL,
-            CONSTRAINT fk_collection
-                FOREIGN KEY (${process.env.POSTGRES_PHOTOS_TABLE_COLLECTION_FK})
-                    REFERENCES ${process.env.POSTGRES_COLLECTIONS_TABLE}(${process.env.POSTGRES_COLLECTIONS_TABLE_ID})
-        );
-    `, [], (err, result) => {
-        if(err) {
-            console.log(err)
-            return
-        }
-        console.log('created collections and photos tables')
-    })
+const createDefaultTable = async () => {
+    try {
+        const result = await query(`
+            CREATE TABLE IF NOT EXISTS ${process.env.POSTGRES_COLLECTIONS_TABLE} (
+                ${process.env.POSTGRES_COLLECTIONS_TABLE_ID} SERIAL PRIMARY KEY,
+                ${process.env.POSTGRES_COLLECTIONS_TABLE_NAME} VARCHAR NOT NULL,
+                ${process.env.POSTGRES_COLLECTIONS_TABLE_DESC} VARCHAR,
+                ${process.env.POSTGRES_COLLECTIONS_TABLE_TIMESTAMP} TIMESTAMP NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS ${process.env.POSTGRES_PHOTOS_TABLE} (
+                ${process.env.POSTGRES_PHOTOS_TABLE_ID} SERIAL PRIMARY KEY,
+                ${process.env.POSTGRES_PHOTOS_TABLE_COLLECTION_FK} INT,
+                ${process.env.POSTGRES_PHOTOS_TABLE_FILENAME} VARCHAR,
+                ${process.env.POSTGRES_PHOTOS_TABLE_PHOTO_POSITION} POINT NOT NULL,
+                ${process.env.POSTGRES_PHOTOS_TABLE_TIMESTAMP} TIMESTAMP NOT NULL,
+                CONSTRAINT fk_collection
+                    FOREIGN KEY (${process.env.POSTGRES_PHOTOS_TABLE_COLLECTION_FK})
+                        REFERENCES ${process.env.POSTGRES_COLLECTIONS_TABLE}(${process.env.POSTGRES_COLLECTIONS_TABLE_ID})
+            );
+        `, [])
+        console.log(result)
+        console.log(`Created ${process.env.POSTGRES_COLLECTIONS_TABLE} and ${process.env.POSTGRES_PHOTOS_TABLE} table!`)
+    } catch (err) {
+        console.log(err)
+    }
 }
 
 export { 
