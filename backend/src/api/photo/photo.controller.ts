@@ -7,7 +7,9 @@ const getPhoto = async (req: Request, res: Response, next : any) => {
     const id = req.params.id
 
     try {
-        const result = await query(`SELECT * from ${process.env.POSTGRES_PHOTOS_TABLE!}`, [])
+        const result = await query(`
+            SELECT * from ${process.env.POSTGRES_PHOTOS_TABLE!}
+            WHERE ${process.env.POSTGRES_PHOTOS_TABLE_ID!} = $1`, [id])
         return res.status(200).json({ data: result.rows, length: result.rowCount })
     } catch (err) {
         return next(err)
@@ -18,17 +20,21 @@ const getPhoto = async (req: Request, res: Response, next : any) => {
 const getPhotos = async (req: Request, res: Response, next: any) => {
     console.log('searching the N nearest photos')
 
-    const n = req.params.n
-    const lat = req.params.lat
-    const lon = req.params.lon
+    if(!req.query.lat || !req.query.lon || !req.query.n) {
+        return res.status(400).json({ error: 'bad request' })
+    }
+
+    const n = req.query.n
+    const lat = req.query.lat as string
+    const lon = req.query.lon as string
 
     try {
         const result = await query(`
-            SELECT *, ST_DistanceSphere($1::geometry, ST_MakePoint($2,$3)::geometry) as $4
-            FROM $5
-            ORDER BY $4
-            LIMIT $5;`, 
-        [process.env.POSTGRES_PHOTOS_TABLE_PHOTO_POSITION, lon, lat, process.env.POSTGRES_PHOTOS_TABLE_QUERY_DISTANCE_FIELD, process.env.POSTGRES_PHOTOS_TABLE, n])
+            SELECT *, ST_DistanceSphere(${process.env.POSTGRES_PHOTOS_TABLE_PHOTO_POSITION}::geometry, ST_MakePoint(${parseFloat(lon)}, ${parseFloat(lat)})::geometry) as ${process.env.POSTGRES_PHOTOS_TABLE_QUERY_DISTANCE_FIELD!}
+            FROM ${process.env.POSTGRES_PHOTOS_TABLE}
+            ORDER BY ${process.env.POSTGRES_PHOTOS_TABLE_QUERY_DISTANCE_FIELD!}
+            LIMIT ${n};`, 
+        [])
 
         return res.status(200).json({ data: result.rows, length: result.rowCount })
 
