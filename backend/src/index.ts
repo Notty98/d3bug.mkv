@@ -2,6 +2,7 @@ import express, { Express } from 'express'
 import dotenv from 'dotenv'
 import helmet from 'helmet'
 import bodyParser from 'body-parser'
+import cors from 'cors'
 
 // load environment variables
 dotenv.config()
@@ -12,6 +13,9 @@ const app: Express = express()
 app.use(helmet())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded( { extended: true } ))
+app.use(cors({
+    origin: 'http://localhost:8080'
+}))
 
 //const db = require('./db/index')
 // initialize the database
