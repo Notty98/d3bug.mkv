@@ -4,6 +4,7 @@
             <b-navbar-nav>
             <b-nav-item href="/">Home</b-nav-item>
             <b-nav-item href="/upload">Upload</b-nav-item>
+            <b-nav-item href="/geojson">Geojson</b-nav-item>
 
             <!-- Navbar dropdowns -->
             <b-nav-item-dropdown text="Lang" right>

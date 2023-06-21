@@ -1,6 +1,7 @@
 import { createWebHistory, createRouter } from "vue-router"
 import MainPage from '@/views/MainPage.vue'
 import UploadPage from '@/views/UploadPage.vue'
+import GeoJson from '@/views/Geojson.vue'
 
 const routes = [
     {
@@ -11,6 +12,10 @@ const routes = [
         path: '/upload',
         name: 'Upload',
         component: UploadPage
+    }, {
+        path: '/geojson',
+        name: 'GeoJson',
+        component: GeoJson
     }
 ]
 

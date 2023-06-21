@@ -2,20 +2,32 @@
     <!--<img alt="Vue logo" src="./assets/logo.png">
     <HelloWorld msg="Welcome to Your Vue.js App"/>-->
     <NavBar></NavBar>
-    <MapContainer></MapContainer>
+    <MainMapContainer :geojson="geojson"></MainMapContainer>
 </template>
   
   <script>
   //import HelloWorld from './components/HelloWorld.vue'
-  import MapContainer from '../components/MapComponent.vue'
+  import MainMapContainer from '../components/MainMapComponent.vue'
   import NavBar from '../components/NavBar.vue';
+
+  import { mapState } from 'vuex';
   
   export default {
     name: 'MainPage',
+    props: {
+      /*geojson: {
+        type: Object,
+        default: null
+      }*/
+    },
     components: {
       //HelloWorld,
-      MapContainer,
+      MainMapContainer,
       NavBar
+    },
+    computed: { ...mapState(['geojson']) },
+    mounted() {
+      console.log(this.geojson)
     }
   }
   </script>
