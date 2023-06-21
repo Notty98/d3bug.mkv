@@ -1,0 +1,23 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- New Button -->
+    <Button
+        android:id="@+id/newButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Crea nuova Collezione" />
+
+    <!-- Add Button -->
+    <Button
+        android:id="@+id/addButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Aggiungi ad una collezione" />
+
+</LinearLayout>
