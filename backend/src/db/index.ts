@@ -34,6 +34,11 @@ const query = (text: string, params: any) => {
 const createDefaultTable = async () => {
     try {
         const result = await query(`
+            CREATE TABLE IF NOT EXISTS ${process.env.POSTGRES_GEOJSON_TABLE} (
+                ${process.env.POSTGRES_GEOJSON_TABLE_ID} SERIAL PRIMARY KEY,
+                ${process.env.POSTGRES_GEOJSON_TABLE_NAME} VARCHAR NOT NULL,
+                ${process.env.POSTGRES_GEOJSON_TABLE_GEOM} TEXT
+            );
             CREATE TABLE IF NOT EXISTS ${process.env.POSTGRES_COLLECTIONS_TABLE} (
                 ${process.env.POSTGRES_COLLECTIONS_TABLE_ID} SERIAL PRIMARY KEY,
                 ${process.env.POSTGRES_COLLECTIONS_TABLE_NAME} VARCHAR NOT NULL,
@@ -51,7 +56,6 @@ const createDefaultTable = async () => {
                         REFERENCES ${process.env.POSTGRES_COLLECTIONS_TABLE}(${process.env.POSTGRES_COLLECTIONS_TABLE_ID})
             );
         `, [])
-        console.log(result)
         console.log(`Created ${process.env.POSTGRES_COLLECTIONS_TABLE} and ${process.env.POSTGRES_PHOTOS_TABLE} table!`)
     } catch (err) {
         console.log(err)

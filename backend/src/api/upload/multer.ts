@@ -21,6 +21,17 @@ const checkFileType = (file: Express.Multer.File, cb: multer.FileFilterCallback)
     return cb(new Error("Error: invalid file extension!"))
 }
 
+const checkGeoJsonFileType = (file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    const fileTypes = /geojson/
+
+    const extName = fileTypes.test(path.extname(file.originalname).toLocaleLowerCase())
+
+    if(extName) {
+        return cb(null, true)
+    }
+    return cb(new Error("Error: invalid file extension!"))
+}
+
 const upload = multer({
     storage: storageEngine,
     limits: { fileSize: parseInt(process.env.MULTER_FILE_SIZE_LIMIT!) },
@@ -29,4 +40,13 @@ const upload = multer({
     }
 })
 
-export { upload }
+const geoJsonUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: parseInt(process.env.MULTER_FILE_SIZE_LIMIT!) },
+    fileFilter: (req, file, cb) => {
+        checkGeoJsonFileType(file, cb)
+    }
+})
+
+
+export { upload, geoJsonUpload }
