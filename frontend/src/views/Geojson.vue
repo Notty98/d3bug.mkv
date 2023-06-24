@@ -9,7 +9,7 @@
 <script>
 
 import NavBar from '../components/NavBar.vue'
-import { mapState, mapMutations } from 'vuex';
+import { addGeoJson } from '../services/services'
   
 export default {
     name: 'GeoJson',
@@ -18,26 +18,22 @@ export default {
     },
     data() {
         return {
+            formData: null
         }
     },
     mounted() {
+        console.log(this.geojson)
     },
-    computed: { ...mapState(['geojson']) },
     methods: {
-        ...mapMutations(['setGeoJson']),
-        handleFiles(event) {
+        async handleFiles(event) {
             console.log('file uploaded!')
             const geoJsonFile = event.target.files[0]
 
-            const reader = new FileReader()
-            reader.onload = (event) => {
-                const geojson = JSON.parse(event.target.result)
-                //console.log(geojson)
-                // push to mainMapcomponent
-                this.setGeoJson(geojson)
-                this.$router.push({ name: 'Home' });
-            }
-            reader.readAsText(geoJsonFile)
+            this.formData = new FormData()
+            this.formData.append('geojson', geoJsonFile)
+            await addGeoJson(this.formData)
+            //this.addGeoJson(geojson)
+            this.$router.push({ name: 'Home' });
         }
     }
 }

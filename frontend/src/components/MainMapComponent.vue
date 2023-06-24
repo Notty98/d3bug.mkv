@@ -14,16 +14,13 @@
     import { Fill,  Stroke } from 'ol/style'
 
     import 'ol/ol.css'
+    import { getGeoJsons } from '../services/services'
+
 
     export default {
         name: 'MainMapContainer',
         components: {},
         props: {
-            geojson: {
-                type: Object,
-                default: null
-            },
-            geoJsonFiles: [],
             latitude: {
                 type: Number,
                 default: null
@@ -33,7 +30,21 @@
                 default: null
             }
         },
+        data() {
+            return {
+                geojson: [],
+                map: null,
+            }
+        },
         mounted() {
+            getGeoJsons().then((data) => {
+                for(const item of data.data) {
+                    const jsonGeoJson = JSON.parse(item['geojson_geom'])
+                    this.geojson.push(jsonGeoJson)
+                }
+                this.setGeoJsonLayer()
+            })
+
             const map = new Map({
                 target: this.$refs['map-root'],
                 layers: [
@@ -57,44 +68,44 @@
                 console.log('click')
                 console.log(e)
             })
+            this.map = map
+        },
+        methods: {
+            setGeoJsonLayer() {
+                const features = []
 
-            // add geojson boundaries
-            if(this.geojson) {
-                console.log(this.geojson)
+                // Iterate over each GeoJSON object in the array
+                this.geojson.forEach((geojson) => {
+                    // Read features from each GeoJSON object
+                    const geojsonFeatures = new GeoJSON().readFeatures(geojson)
 
-                /*const geoJsonSource = new VectorSource({
-                    features: new GeoJSON().readFeatures(this.geojson)
-                })*/
-                const features = new GeoJSON().readFeatures(this.geojson);
-                this.geoJsonSource = new VectorSource({
+                    // Transform the coordinates to match the map's projection
+                    geojsonFeatures.forEach((feature) => {
+                        const geometry = feature.getGeometry();
+                        geometry.transform('EPSG:4326', 'EPSG:3857');
+                    })
+
+                    // Add the features to the array
+                    features.push(...geojsonFeatures)
+                })
+
+                const geoJsonSource = new VectorSource({
                     features: features,
-                });
-
-                // Transform the coordinates to match the map's projection
-                this.geoJsonSource.forEachFeature((feature) => {
-                    const geometry = feature.getGeometry();
-                    geometry.transform('EPSG:4326', 'EPSG:3857');
-                });
+                })
 
                 const geoJsonVector = new VectorLayer({
-                    source: this.geoJsonSource,
+                    source: geoJsonSource,
                     style: new Style({
                         stroke: new Stroke({
                             color: 'red',
-                            width: 2
+                            width: 2,
                         }),
                         fill: new Fill({
-                            color: 'rgba(255, 0, 0, 0.1)'
-                        })
-                    })
+                            color: 'rgba(255, 0, 0, 0.1)',
+                        }),
+                    }),
                 })
-                map.addLayer(geoJsonVector)
-                // Fit the view to both the base map and the GeoJSON boundaries
-                /*const extent = geoJsonSource.getExtent();
-                const padding = [100, 100, 100, 100]; // Adjust padding as needed
-                map.getView().fit(extent, {
-                    padding
-                });*/
+                this.map.addLayer(geoJsonVector)
             }
         }
     }
