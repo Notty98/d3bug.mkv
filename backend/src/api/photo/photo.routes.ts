@@ -1,8 +1,9 @@
 import express from 'express'
-import { upload } from '../upload/multer'
-import { getPhoto, getPhotos } from './photo.controller'
+import { getPhoto, getPhotos, getAll } from './photo.controller'
 
 const router = express.Router()
+
+router.get('/all', getAll)
 
 router.get('/:id', getPhoto)
 

@@ -17,6 +17,39 @@ const getPhoto = async (req: Request, res: Response, next : any) => {
 
 }
 
+const getAllPhotosofCollection = async (req: Request, res: Response, next: any) => {
+    console.log('getAll photos of collection')
+
+    try {
+        const collectionId = req.params.collectionId
+
+        const result = await query(`
+            SELECT *
+            FROM ${process.env.POSTGRES_PHOTOS_TABLE}
+            WHERE ${process.env.POSTGRES_PHOTOS_TABLE_COLLECTION_FK} = $1;`, [collectionId])
+
+        return res.status(200).json({ data: result.rows, length: result.rowCount })
+
+    } catch (err) {
+        return next(err)
+    }
+ }
+
+const getAll = async (req: Request, res: Response, next: any) => {
+    console.log('getAll photos')
+
+    try {
+        const result = await query(`
+            SELECT *
+            FROM ${process.env.POSTGRES_PHOTOS_TABLE};`, [])
+
+        return res.status(200).json({ data: result.rows, length: result.rowCount })
+
+    } catch (err) {
+        return next(err)
+    }
+}
+
 const getPhotos = async (req: Request, res: Response, next: any) => {
     console.log('searching the N nearest photos')
 
@@ -46,5 +79,7 @@ const getPhotos = async (req: Request, res: Response, next: any) => {
 
 export {
     getPhoto,
-    getPhotos
+    getPhotos,
+    getAll,
+    getAllPhotosofCollection
 }
