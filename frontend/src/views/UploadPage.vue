@@ -42,7 +42,7 @@
     <div v-if="files.length > 0 && selectedCollection != null" style="height: 100%;">
         <h1>Choose the point on the map for the {{ this.files[index].name }} image</h1>
         <div style="height: 50%;">
-            <MapComponent v-on:update:latitude="updateLatitude" v-on:update:longitude="updateLongitude"></MapComponent>
+            <MapComponent v-on:update:latitude="updateLatitude" v-on:update:longitude="updateLongitude" ref="mapComponent"></MapComponent>
         </div>
         <b-button variant="success" @click="event => handleContinueButton(event)">Continue</b-button>
     </div>
@@ -103,10 +103,13 @@ export default {
 
             this.formData.push(formData)
 
-            if(this.index + 1 < this.files.length)
+            if(this.index + 1 < this.files.length) {
                 this.index = this.index + 1
-            else
+                this.$refs.mapComponent.clear()
+            } else {
                 this.handleUpload()
+            }
+                
         },
         updateSelection(event, item) {
             console.log('here')
@@ -133,6 +136,9 @@ export default {
             }
             console.log('done')
             this.$router.push('/')
+        },
+        invokeClearMarkerEvent() {
+            this.$emit('clearMarkerEvent')
         }
     }
 }

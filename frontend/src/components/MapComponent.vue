@@ -14,6 +14,9 @@
     import { Point } from 'ol/geom'
     import { toLonLat } from 'ol/proj'
 
+    import Style from 'ol/style/Style'
+    import { Icon } from 'ol/style'
+
     export default {
         name: 'MapContainer',
         components: {},
@@ -25,6 +28,11 @@
             longitude: {
                 type: Number,
                 default: null
+            }
+        },
+        data() {
+            return {
+                markerLayer: null
             }
         },
         mounted() {
@@ -43,16 +51,22 @@
             })
 
             // handle click
-            const markerLayer = new VectorLayer({
+            this.markerLayer = new VectorLayer({
                 source: new VectorSource(),
+                style: new Style({
+                    image: new Icon({
+                        scale: 0.5,
+                        src: require('@/assets/marker.png')
+                    })
+                })
             })
-            map.addLayer(markerLayer)
+            map.addLayer(this.markerLayer)
 
             map.on('click', (e) => {
-                const markerSource = markerLayer.getSource()
+                this.clear()
+                const markerSource = this.markerLayer.getSource()
                 const coordinate = e.coordinate
                 const latlon = toLonLat(coordinate)
-                console.log(latlon)
 
                 const latitude = latlon[1]
                 const longitude = latlon[0]
@@ -65,6 +79,11 @@
                 })
                 markerSource.addFeature(markerFeature)
             })
+        },
+        methods: {
+            clear() {
+                this.markerLayer.getSource().clear()
+            }
         }
     }
 </script>
