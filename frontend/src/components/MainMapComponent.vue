@@ -12,10 +12,17 @@
 
     import Style from 'ol/style/Style'
     import { Fill,  Stroke } from 'ol/style'
+    import { Icon } from 'ol/style'
 
     import 'ol/ol.css'
-    import { getGeoJsons } from '../services/services'
+    import { getGeoJsons, getAllPhotos } from '../services/services'
 
+    import Feature from 'ol/Feature'
+    import { Point } from 'ol/geom'
+
+    import { transform } from 'ol/proj'
+
+    import { getMapFromStorage } from '../storage/localstorage'
 
     export default {
         name: 'MainMapContainer',
@@ -34,7 +41,13 @@
             return {
                 geojson: [],
                 map: null,
+                markerLayer: null,
+                selectedFeatures: null
             }
+        },
+        created() {
+            this.selectedFeatures = getMapFromStorage()
+            console.log(this.selectedFeatures)
         },
         mounted() {
             getGeoJsons().then((data) => {
@@ -59,34 +72,57 @@
                 })
             })
             // handle click
-            const markerLayer = new VectorLayer({
+            this.markerLayer = new VectorLayer({
                 source: new VectorSource(),
+                style: new Style({
+                    image: new Icon({
+                        scale: 0.5,
+                        src: require('@/assets/marker.png')
+                    })
+                })
             })
-            map.addLayer(markerLayer)
+            map.addLayer(this.markerLayer)
 
-            map.on('click', (e) => {
+            getAllPhotos().then((data) => {
+                this.addMarkerToMap(data)
+            })
+
+            /*map.on('click', (e) => {
                 console.log('click')
                 console.log(e)
-            })
+            })*/
             this.map = map
         },
         methods: {
+            getMapFromStorage() {
+                const stringMap = localStorage.getItem('selectedFeatures')
+                if(!stringMap) {
+                    return new Map()
+                }
+                return new Map(JSON.parse(stringMap))
+            },
             setGeoJsonLayer() {
                 const features = []
 
                 // Iterate over each GeoJSON object in the array
-                this.geojson.forEach((geojson) => {
+                this.geojson.forEach((geojson, geoJsonIndex) => {
                     // Read features from each GeoJSON object
                     const geojsonFeatures = new GeoJSON().readFeatures(geojson)
 
-                    // Transform the coordinates to match the map's projection
-                    geojsonFeatures.forEach((feature) => {
-                        const geometry = feature.getGeometry();
-                        geometry.transform('EPSG:4326', 'EPSG:3857');
+                    let filteredFeatures = geojsonFeatures.filter((feature, featureIndex) => {
+                        const key = geoJsonIndex + '-' + featureIndex
+                        return this.selectedFeatures.get(key) 
                     })
 
+                    // Transform the coordinates to match the map's projection
+                    filteredFeatures.forEach((feature) => {
+                        const geometry = feature.getGeometry();
+                        geometry.transform('EPSG:4326', 'EPSG:3857')
+                    })
+                    
                     // Add the features to the array
-                    features.push(...geojsonFeatures)
+                    features.push(...filteredFeatures)
+
                 })
 
                 const geoJsonSource = new VectorSource({
@@ -106,6 +142,20 @@
                     }),
                 })
                 this.map.addLayer(geoJsonVector)
+            },
+            addMarkerToMap(data) {
+                let markerSource = this.markerLayer.getSource()
+                for(const photo of data.data) {
+                    const coordinates = photo.photo_position
+
+                    const transformedCoordinates = transform([coordinates.y, coordinates.x], 'EPSG:4326', 'EPSG:3857');
+
+                    const markerFeature = new Feature({
+                        geometry: new Point(transformedCoordinates)
+                    })
+                    markerSource.addFeature(markerFeature)
+                }
+                this.markerLayer.setSource(markerSource)
             }
         }
     }
