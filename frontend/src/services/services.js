@@ -56,3 +56,12 @@ export const addGeoJson = async (form) => {
         console.log(err)
     }
 }
+
+export const getAllPhotos = async () => {
+    try {
+        const collections = await axios.get(`http://localhost:9090/api/photos/all`)
+        return collections.data
+    } catch (err) {
+        console.log(err)
+    }
+}
