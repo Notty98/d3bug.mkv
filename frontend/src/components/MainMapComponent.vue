@@ -3,6 +3,7 @@
 </template>
 
 <script>
+    import chroma from "chroma-js"
     import View from 'ol/View'
     import Map from 'ol/Map'
     import TileLayer from 'ol/layer/Tile'
@@ -137,7 +138,8 @@
 
                 this.geoJsonLayer = new VectorLayer({
                     source: geoJsonSource,
-                    style: new Style({
+                    style: new Style()
+                    /*style: new Style({
                         stroke: new Stroke({
                             color: 'red',
                             width: 2,
@@ -145,12 +147,16 @@
                         fill: new Fill({
                             color: 'rgba(255, 0, 0, 0.1)',
                         }),
-                    }),
+                    }),*/
                 })
                 this.map.addLayer(this.geoJsonLayer)
             },
             addMarkerToMap(data) {
                 let markerSource = this.markerLayer.getSource()
+
+                let geoJsonSource = this.geoJsonLayer.getSource()
+                let features = geoJsonSource.getFeatures()
+
                 for(const photo of data.data) {
                     const coordinates = photo.photo_position
 
@@ -160,23 +166,44 @@
                         geometry: new Point(transformedCoordinates)
                     })
 
-                    let geoJsonSource = this.geoJsonLayer.getSource()
-                    const features = geoJsonSource.getFeatures()
+                    
 
-                    for(const feature of features) {
-                        const geoJsonGeometry = feature.getGeometry()
-                        console.log(geoJsonGeometry)
+                    for(let index = 0; index < features.length; index++) {
+                        const geoJsonGeometry = features[index].getGeometry()
+                        console.log(features[index])
                         const isInside = geoJsonGeometry.intersectsCoordinate(transformedCoordinates)
                         if(isInside) {
+                            let oldValue = (!features[index].get('photoCount')) ? 0 : features[index].get('photoCount')
+                            features[index].set('photoCount', (oldValue + 1))
                             markerSource.addFeature(markerFeature)
                             break
                         }
                     }
-
-                    //markerSource.addFeature(markerFeature)
                 }
+
                 this.markerLayer.setSource(markerSource)
+                //console.log(this.geoJsonLayer.getSource().getFeatures())
+                //this.geoJsonLayer.setSource(features)
+                this.setStyleToGeoJson()
+            },
+            setStyleToGeoJson() {
+                this.geoJsonLayer.setStyle(this.styleFunction)
+                /*const style = this.styleFunction;
+                const styles = this.geoJsonLayer.getStyle()
+                console.log(styles)
+                styles.splice(0, 0, style); // Insert the style at the beginning of the array
+                this.geoJsonLayer.setStyle(styles);*/
+            },
+            styleFunction(feature) {
+                const photoCount = feature.get('photoCount')
+                const colorScale = chroma.scale(['yellow', 'red']).domain([0, 100]); // Esempio di scala di colori
+                const color = colorScale(photoCount).hex();
+
+                return new Style({
+                    fill: new Fill({ color }),
+                    stroke: new Stroke({ color: '#000000', width: 1 }),
+                });
             }
-        }
+        },
     }
 </script>
