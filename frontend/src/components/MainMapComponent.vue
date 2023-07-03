@@ -42,7 +42,8 @@
                 geojson: [],
                 map: null,
                 markerLayer: null,
-                selectedFeatures: null
+                selectedFeatures: null,
+                geoJsonLayer: null
             }
         },
         created() {
@@ -50,14 +51,6 @@
             console.log(this.selectedFeatures)
         },
         mounted() {
-            getGeoJsons().then((data) => {
-                for(const item of data.data) {
-                    const jsonGeoJson = JSON.parse(item['geojson_geom'])
-                    this.geojson.push(jsonGeoJson)
-                }
-                this.setGeoJsonLayer()
-            })
-
             const map = new Map({
                 target: this.$refs['map-root'],
                 layers: [
@@ -83,15 +76,28 @@
             })
             map.addLayer(this.markerLayer)
 
-            getAllPhotos().then((data) => {
+            /*getAllPhotos().then((data) => {
                 this.addMarkerToMap(data)
-            })
+            })*/
 
             /*map.on('click', (e) => {
                 console.log('click')
                 console.log(e)
             })*/
             this.map = map
+
+
+            getGeoJsons().then((data) => {
+                for(const item of data.data) {
+                    const jsonGeoJson = JSON.parse(item['geojson_geom'])
+                    this.geojson.push(jsonGeoJson)
+                }
+                this.setGeoJsonLayer()
+
+                getAllPhotos().then((data) => {
+                    this.addMarkerToMap(data)
+                })
+            })
         },
         methods: {
             getMapFromStorage() {
@@ -129,7 +135,7 @@
                     features: features,
                 })
 
-                const geoJsonVector = new VectorLayer({
+                this.geoJsonLayer = new VectorLayer({
                     source: geoJsonSource,
                     style: new Style({
                         stroke: new Stroke({
@@ -141,7 +147,7 @@
                         }),
                     }),
                 })
-                this.map.addLayer(geoJsonVector)
+                this.map.addLayer(this.geoJsonLayer)
             },
             addMarkerToMap(data) {
                 let markerSource = this.markerLayer.getSource()
@@ -153,7 +159,21 @@
                     const markerFeature = new Feature({
                         geometry: new Point(transformedCoordinates)
                     })
-                    markerSource.addFeature(markerFeature)
+
+                    let geoJsonSource = this.geoJsonLayer.getSource()
+                    const features = geoJsonSource.getFeatures()
+
+                    for(const feature of features) {
+                        const geoJsonGeometry = feature.getGeometry()
+                        console.log(geoJsonGeometry)
+                        const isInside = geoJsonGeometry.intersectsCoordinate(transformedCoordinates)
+                        if(isInside) {
+                            markerSource.addFeature(markerFeature)
+                            break
+                        }
+                    }
+
+                    //markerSource.addFeature(markerFeature)
                 }
                 this.markerLayer.setSource(markerSource)
             }
