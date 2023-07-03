@@ -182,22 +182,16 @@
                 }
 
                 this.markerLayer.setSource(markerSource)
-                //console.log(this.geoJsonLayer.getSource().getFeatures())
-                //this.geoJsonLayer.setSource(features)
+
                 this.setStyleToGeoJson()
             },
             setStyleToGeoJson() {
                 this.geoJsonLayer.setStyle(this.styleFunction)
-                /*const style = this.styleFunction;
-                const styles = this.geoJsonLayer.getStyle()
-                console.log(styles)
-                styles.splice(0, 0, style); // Insert the style at the beginning of the array
-                this.geoJsonLayer.setStyle(styles);*/
             },
             styleFunction(feature) {
-                const photoCount = feature.get('photoCount')
-                const colorScale = chroma.scale(['yellow', 'red']).domain([0, 100]); // Esempio di scala di colori
-                const color = colorScale(photoCount).hex();
+                const photoCount = feature.get('photoCount') || 0
+                const colorScale = chroma.scale(['yellow', 'red']).domain([0, 10]); // Esempio di scala di colori
+                const color = colorScale(photoCount).alpha(0.1).hex();
 
                 return new Style({
                     fill: new Fill({ color }),
