@@ -3,6 +3,7 @@ import MainPage from '@/views/MainPage.vue'
 import UploadPage from '@/views/UploadPage.vue'
 import GeoJson from '@/views/Geojson.vue'
 import GeoJsonFilter from '@/views/GeoJsonFilter.vue'
+import KmeansPage from '@/views/Kmeans.vue'
 
 const routes = [
     {
@@ -21,6 +22,10 @@ const routes = [
         path: '/geojsonFilter',
         name: 'GeoJsonFilter',
         component: GeoJsonFilter
+    }, {
+        path: '/kmeans',
+        name: 'kmeans',
+        component: KmeansPage
     }
 ]
 
