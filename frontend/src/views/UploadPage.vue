@@ -42,9 +42,10 @@
     <div v-if="files.length > 0 && selectedCollection != null" style="height: 100%;">
         <h1>Choose the point on the map for the {{ this.files[index].name }} image</h1>
         <div style="height: 50%;">
-            <MapComponent v-on:update:latitude="updateLatitude" v-on:update:longitude="updateLongitude" ref="mapComponent"></MapComponent>
+            <MapComponent v-on:update:latitude="latitude => updateLatitude(latitude)" v-on:update:longitude="longitude => updateLongitude(longitude)" ref="mapComponent"></MapComponent>
         </div>
         <b-button variant="success" @click="event => handleContinueButton(event)">Continue</b-button>
+        <b-button variant="success" @click="event => handleKeepCurrentPosition(event)" v-if="files.length > 1">Keep the current position for the remaining file</b-button>
     </div>
 </template>
   
@@ -82,27 +83,28 @@ export default {
     methods: {
         updateLatitude(latitude) {
             this.latitude = latitude
-            console.log(this.selectedCollection)
         },
         updateLongitude(longitude) {
             this.longitude = longitude
         },
         handleFiles(event) {
             const files = event.target.files
-            console.log('handling files...')
             this.files = files
         },
-        handleContinueButton(event) {
-            console.log('click on continue')
-            console.log(event)
-
+        pushFormData() {
             const formData = new FormData()
             formData.append('photo', this.files[this.index])
             formData.append('lat', this.latitude)
             formData.append('lon', this.longitude)
 
             this.formData.push(formData)
+        },
+        handleContinueButton(event) {
+            console.log('click on continue')
+            console.log(event)
 
+            this.pushFormData()
+            
             if(this.index + 1 < this.files.length) {
                 this.index = this.index + 1
                 this.$refs.mapComponent.clear()
@@ -111,10 +113,22 @@ export default {
             }
                 
         },
+        handleKeepCurrentPosition(event) {
+            console.log('click on keep position')
+            console.log(event)
+
+            this.pushFormData()
+
+            while(this.index + 1 < this.files.length) {
+                this.index = this.index + 1
+                this.pushFormData()
+            }
+            
+            this.handleUpload()
+
+        },
         updateSelection(event, item) {
-            console.log('here')
             this.selectedCollection = item.collection_id
-            console.log(this.selectedCollection)
         },
         handleCreationOfCollection(event) {
             console.log(event)

@@ -7,6 +7,7 @@
                 <b-nav-item href="/geojson">Geojson</b-nav-item>
                 <b-nav-item href="/geojsonFilter">Geojson Filter</b-nav-item>
                 <b-nav-item href="/kmeans" >KMeans</b-nav-item>
+                <b-nav-item href="/heatmap">HeatMap</b-nav-item>
             </b-navbar-nav>
         </b-navbar>
     </div>
