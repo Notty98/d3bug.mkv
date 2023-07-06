@@ -66,7 +66,7 @@
                 for(const photo of data.data) {
                     const coordinates = photo.photo_position
 
-                    const transformedCoordinates = transform([coordinates.y, coordinates.x], 'EPSG:4326', 'EPSG:3857');
+                    const transformedCoordinates = transform([coordinates.x, coordinates.y], 'EPSG:4326', 'EPSG:3857');
 
                     const markerFeature = new Feature({
                         geometry: new Point(transformedCoordinates)

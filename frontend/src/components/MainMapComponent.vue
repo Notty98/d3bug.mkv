@@ -160,7 +160,7 @@
                 for(const photo of data.data) {
                     const coordinates = photo.photo_position
 
-                    const transformedCoordinates = transform([coordinates.y, coordinates.x], 'EPSG:4326', 'EPSG:3857');
+                    const transformedCoordinates = transform([coordinates.x, coordinates.y], 'EPSG:4326', 'EPSG:3857');
 
                     const markerFeature = new Feature({
                         geometry: new Point(transformedCoordinates)
@@ -170,7 +170,6 @@
 
                     for(let index = 0; index < features.length; index++) {
                         const geoJsonGeometry = features[index].getGeometry()
-                        console.log(features[index])
                         const isInside = geoJsonGeometry.intersectsCoordinate(transformedCoordinates)
                         if(isInside) {
                             let oldValue = (!features[index].get('photoCount')) ? 0 : features[index].get('photoCount')
@@ -190,7 +189,7 @@
             },
             styleFunction(feature) {
                 const photoCount = feature.get('photoCount') || 0
-                const colorScale = chroma.scale(['yellow', 'red']).domain([0, 10]); // Esempio di scala di colori
+                const colorScale = chroma.scale(['yellow', 'red']).domain([0, 2]); // Esempio di scala di colori
                 const color = colorScale(photoCount).alpha(0.1).hex();
 
                 return new Style({
