@@ -28,7 +28,7 @@ const createCollection = async (req: Request, res: Response, next: any) => {
                 VALUES 
                 ($1, $2, POINT($3, $4), to_timestamp($5))
                 RETURNING ${process.env.POSTGRES_PHOTOS_TABLE_ID!};
-            `, [collection_id, filename, lon, lat, timestamp])
+            `, [collection_id, filename, lat, lon, timestamp])
 
             return res.status(201).json({ photoId: photoResult.rows[0].photo_id, collectionId: collection_id})
         }
