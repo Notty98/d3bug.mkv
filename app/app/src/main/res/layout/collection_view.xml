@@ -9,12 +9,8 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/list"></ListView>
+        android:id="@+id/list_1"></ListView>
 
-
-<include layout="@layout/camera_button"/>
-    <include layout="@layout/search_layout"/>
-    <include layout="@layout/gallery_button"/>
 
 
 

@@ -62,8 +62,11 @@ public class MainActivity extends AppCompatActivity {
     private double currentLatitude;
     private double currentLongitude;
     private ArrayList<ListItem> items = new ArrayList<>();
+    private ArrayList<ListItem> collections = new ArrayList<>();
     private ListItem listItem;
+    private ListItem list_collection;
     private CustomAdapter adapter;
+    private CustomAdapter adapter_1;
 
 
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 1;
@@ -86,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button submit_int;
 
+    private Button gallery_button;
+
     private String photo_description;
     private ActivityResultLauncher<Intent> cameraLauncher;
 
@@ -97,12 +102,19 @@ public class MainActivity extends AppCompatActivity {
     Button search;
 
     String finalUrl1;
+
+    String finalUrl2;
     private Spinner spinner;
+    private Spinner spinner_1;
+
+    private int selected_collection_1;
+
+    private String id_collection;
 
     List<String> collectionID = new ArrayList<>();
     List<String> collectionNames = new ArrayList<>();
 
-    private static final String DOMAIN_NAME = "192.168.1.51:8080";
+    private static final String DOMAIN_NAME = "192.168.1.51:9090";
     private static final String BASE_URL = "http://" + DOMAIN_NAME; // Replace with your API base URL
 
     private  static final String COLLECTION_URL = BASE_URL + "/api/collections";
@@ -112,6 +124,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String PHOTO_URL = BASE_URL + "/resources/";
 
 
+    @Override
+    public void onBackPressed() {
+
+        switchToMainLayout();
+    }
+
+
 
 
     private void updatePosition(double latitude, double longitude) {
@@ -119,6 +138,109 @@ public class MainActivity extends AppCompatActivity {
         currentLongitude = longitude;
     }
 
+
+
+    public void OpenGallery(){
+        setContentView(R.layout.gallery_layout);
+        spinner_1 = findViewById(R.id.spinner_1);
+        Button submitButton_1 = findViewById(R.id.submitButton_1);
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, COLLECTION_URL, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONArray dataArray = response.getJSONArray("data");
+
+
+                            for (int i = 0; i < dataArray.length(); i++) {
+                                JSONObject dataObj = dataArray.getJSONObject(i);
+                                String collectionId = dataObj.getString("collection_id");
+                                String collectionName = dataObj.getString("collection_name");
+                                collectionID.add(collectionId);
+                                collectionNames.add(collectionName);
+                            }
+
+                            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                    MainActivity.this,
+                                    android.R.layout.simple_spinner_item,
+                                    collectionNames
+                            );
+                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinner_1.setAdapter(adapter);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                    }
+                }
+        );
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(request);
+
+        submitButton_1.setOnClickListener(new View.OnClickListener() {
+
+
+                @Override
+                public void onClick(View view) {
+
+                    selected_collection_1 = spinner_1.getSelectedItemPosition();
+                    id_collection = collectionID.get(selected_collection_1);
+                    String url = COLLECTION_URL + "/" + id_collection + "/photos";
+
+                    JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,url, null,
+                            new Response.Listener<JSONObject>() {
+
+                                @Override
+                                public void onResponse(JSONObject response) {
+
+                                    try {
+
+                                        JSONArray dataArray = response.getJSONArray("data");
+                                        collections.clear();
+                                        for (int i = 0; i < dataArray.length(); i++) {
+
+                                                list_collection = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"), PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
+                                                collections.add(list_collection);
+                                            }
+
+                                            setContentView(R.layout.collection_view);
+                                            ListView list_collection_view = findViewById(R.id.list_1);
+                                            adapter_1 = new CustomAdapter(MainActivity.this, collections);
+                                            list_collection_view.setAdapter(adapter_1);
+
+
+
+
+                                          } catch(Exception e){
+                                            e.printStackTrace();
+                                        }
+
+                                }
+                            }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            // Code for handling errors
+                            error.printStackTrace();
+                            // ...
+                        }
+                    });
+                    //RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+                   // requestQueue.add(request);
+                    Volley.newRequestQueue(MainActivity.this).add(request);
+
+                }
+            });
+
+
+    }
     public void MakeGetRequest_list(){
         ListView listView = findViewById(R.id.list);
         Uri.Builder new_builder = new Uri.Builder();
@@ -248,6 +370,13 @@ public class MainActivity extends AppCompatActivity {
         getCurrentLocation();
         updatePosition(currentLatitude,currentLongitude);
         System.out.println(currentLatitude + currentLongitude);
+        gallery_button =findViewById(R.id.gallery);
+        gallery_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                OpenGallery();
+            }
+        });
         search = findViewById(R.id.search);
         search.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -348,10 +477,18 @@ public class MainActivity extends AppCompatActivity {
         //insertInt = inflater.inflate(R.layout.input_integer,null);
 
         btnCamera = findViewById(R.id.button_camera);
+        gallery_button = findViewById(R.id.gallery);
+
 
        // setContentView(R.layout.input_integer);
 
 
+        gallery_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                OpenGallery();
+            }
+        });
 
         cameraLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                 result -> {

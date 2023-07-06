@@ -14,7 +14,7 @@ import okhttp3.Response;
 
 public class NetworkTask extends AsyncTask<Void, Void, String> {
 
-    private static final String BASE_URL = "http://192.168.1.51:8080/api/collections";
+    private static final String BASE_URL = "http://192.168.1.51:9090/api/collections";
    //private static final String BASE_URL = "http://192.168.5.80:8080/api/collections";
 
     private final File imageFile;
