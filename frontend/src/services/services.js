@@ -57,6 +57,24 @@ export const addGeoJson = async (form) => {
     }
 }
 
+export const removeGeojsonById = async (id) => {
+    try {
+        const collections = await axios.delete(`http://localhost:9090/api/geojsons/${id}`)
+        return collections.data
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+export const removeAllGeoJsons = async () => {
+    try {
+        const collections = await axios.delete(`http://localhost:9090/api/geojsons/`)
+        return collections.data
+    } catch (err) {
+        console.log(err)
+    }
+}
+
 export const getAllPhotos = async () => {
     try {
         const collections = await axios.get(`http://localhost:9090/api/photos/all`)
