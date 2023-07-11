@@ -16,4 +16,4 @@ spec:
         - name: app
           image: thenotty/backend
           ports:
-            - containerPort: 8080
+            - containerPort: 9090
