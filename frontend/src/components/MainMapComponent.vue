@@ -1,5 +1,6 @@
 <template>
     <div ref="map-root" style="width: 100%; height: 100%;"></div>
+    <SingleImageModal ref="singleImageModal"></SingleImageModal>
 </template>
 
 <script>
@@ -25,9 +26,13 @@
 
     import { getMapFromStorage } from '../storage/localstorage'
 
+    import SingleImageModal from './SingleImageModal.vue'
+
     export default {
         name: 'MainMapContainer',
-        components: {},
+        components: {
+            SingleImageModal
+        },
         props: {
             latitude: {
                 type: Number,
@@ -76,6 +81,29 @@
                 })
             })
             map.addLayer(this.markerLayer)
+
+            map.on('click', (e) => {
+                const features = []
+                
+                this.map.forEachFeatureAtPixel(e.pixel, (feat) => {
+                    features.push(feat)
+                })
+
+                console.log(features)
+
+                for(const feature of features) {
+                    console.log(feature.getGeometry().getType())
+                    if (feature && feature.getGeometry().getType() == 'Point') {
+                        //var coordinate = evt.coordinate;    //default projection is EPSG:3857 you may want to use ol.proj.transform
+                        const filename = feature.get('filename')
+                        
+                        //this.$refs.singleImageModal.showModal()
+                        this.$refs.singleImageModal.showImage(filename)
+                    }
+                }
+
+                
+            })
 
             this.map = map
 
@@ -145,6 +173,8 @@
                     const markerFeature = new Feature({
                         geometry: new Point(transformedCoordinates)
                     })
+
+                    markerFeature.set('filename', photo.filename)
 
                     if(features.length == 0) {
                         markerSource.addFeature(markerFeature)
