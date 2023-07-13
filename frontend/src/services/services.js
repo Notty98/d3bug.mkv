@@ -91,3 +91,12 @@ export const getAllPhotos = async () => {
         console.log(err)
     }
 }
+
+export const getAllPhotosOfCollection = async (collectionId) => {
+    try {
+        const collections = await axios.get(`http://${currentUrl}/api/collections/${collectionId}/photos/`)
+        return collections.data
+    } catch (err) {
+        console.log(err)
+    }
+}
