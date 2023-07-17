@@ -1,6 +1,7 @@
 FROM node:16
 
 RUN mkdir -p /media
+COPY ./seedImages/ /media/
 
 RUN mkdir -p /usr/src/backend
 WORKDIR /usr/src/backend

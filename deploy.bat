@@ -16,3 +16,9 @@ kubectl apply -f .\nginx-service.yaml
 ::kubectl port-forward deployment/backend 9090:9090
 ::kubectl port-forward deployment/frontend 8080:8080
 ::kubectl port-forward deployment/nginx 80:80
+
+::docker build -t thenotty/frontend .
+::docker push thenotty/frontend
+
+:: docker build -t thenotty/backend .
+:: docker push thenotty/backend
