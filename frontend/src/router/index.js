@@ -8,6 +8,7 @@ import KmeansPage from '@/views/Kmeans.vue'
 import HeatMapView from '@/views/HeatMapView.vue'
 import GalleryPage from '@/views/GalleryPage.vue'
 import GeoJsonGallery from '@/views/GeoJsonGallery.vue'
+import DBScanPage from '@/views/DBScan.vue'
 
 const routes = [
     {
@@ -42,6 +43,10 @@ const routes = [
         path: '/geoGsonGallery',
         name: 'geoGsonGallery',
         component: GeoJsonGallery
+    }, {
+        path: '/dbscan',
+        name: 'dbscan',
+        component: DBScanPage
     }
 ]
 
