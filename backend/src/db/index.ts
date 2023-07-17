@@ -1,4 +1,5 @@
 import { Pool, QueryResult } from 'pg'
+import { seed } from './seed'
 
 console.log(`${process.env.POSTGRES_USERNAME} | ${process.env.POSTGRES_HOST} | ${process.env.POSTGRES_DATABASE} | ${process.env.POSTGRES_PASSWORD} | ${process.env.POSTGRES_PORT}`)
 
@@ -57,6 +58,7 @@ const createDefaultTable = async () => {
             );
         `, [])
         console.log(`Created ${process.env.POSTGRES_COLLECTIONS_TABLE} and ${process.env.POSTGRES_PHOTOS_TABLE} table!`)
+        await seed()
     } catch (err) {
         console.log(err)
     }
