@@ -1,9 +1,14 @@
 package com.example.phototmanager;
 
+import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.rgb;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -11,6 +16,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -36,8 +46,26 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.mapbox.geojson.Point;
+import com.mapbox.mapboxsdk.style.expressions.Expression;
+import com.mapbox.mapboxsdk.style.layers.CircleLayer;
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
+import com.mapbox.maps.MapboxMap;
+import com.mapbox.maps.QueriedFeature;
+import com.mapbox.maps.RenderedQueryGeometry;
+import com.mapbox.maps.RenderedQueryOptions;
+import com.mapbox.maps.ScreenBox;
+import com.mapbox.maps.ScreenCoordinate;
+import com.mapbox.maps.extension.style.image.ImageNinePatchExtensionImpl;
+import com.mapbox.maps.extension.style.image.ImageUtils;
+import com.mapbox.maps.extension.style.layers.properties.generated.TextAnchor;
+import com.mapbox.maps.plugin.annotation.AnnotationPlugin;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
+import com.mapbox.maps.plugin.gestures.GesturesUtils;
 import com.squareup.picasso.Picasso;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,6 +80,17 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
+
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import com.mapbox.maps.MapView;
+import com.mapbox.maps.Style;
+import com.mapbox.geojson.Point;
+import com.mapbox.maps.MapView;
+import com.mapbox.maps.Style;
+import com.mapbox.maps.plugin.annotation.AnnotationPlugin;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
 
 
 
@@ -123,6 +162,13 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String PHOTO_URL = BASE_URL + "/resources/";
 
+    private MapView mapView;
+    private Button button_map;
+
+    private MapboxMap mapboxMap;
+
+
+
 
     @Override
     public void onBackPressed() {
@@ -137,8 +183,6 @@ public class MainActivity extends AppCompatActivity {
         currentLatitude = latitude;
         currentLongitude = longitude;
     }
-
-
 
     public void OpenGallery(){
         setContentView(R.layout.gallery_layout);
@@ -455,6 +499,17 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, LOCATION_PERMISSION_REQUEST_CODE);
             }
         }
+
+        button_map = findViewById(R.id.button_map);
+        mapView = findViewById(R.id.openmap);
+        button_map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setContentView(R.layout.openmap_layout);
+
+            }
+        });
+
 
 
 

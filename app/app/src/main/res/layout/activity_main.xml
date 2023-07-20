@@ -15,6 +15,7 @@
 <include layout="@layout/camera_button"/>
     <include layout="@layout/search_layout"/>
     <include layout="@layout/gallery_button"/>
+    <include layout="@layout/mapbutton"/>
 
 
 

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Phototmanager</string>
+    <string name="mapbox_access_token">sk.eyJ1IjoiZ2l1c2VwcGVtYXNzaW1vIiwiYSI6ImNsa2F1Z3o3dzBiYXEzZm80M3hxZ3JyMWsifQ.rRRlpNeaPYq9itd8tMjFvw</string>
 </resources>
