@@ -6,6 +6,9 @@ import GeoJson from '@/views/Geojson.vue'
 import GeoJsonFilter from '@/views/GeoJsonFilter.vue'
 import KmeansPage from '@/views/Kmeans.vue'
 import HeatMapView from '@/views/HeatMapView.vue'
+import GalleryPage from '@/views/GalleryPage.vue'
+import GeoJsonGallery from '@/views/GeoJsonGallery.vue'
+import DBScanPage from '@/views/DBScan.vue'
 
 const routes = [
     {
@@ -32,6 +35,18 @@ const routes = [
         path: '/heatmap',
         name: 'heatmap',
         component: HeatMapView
+    }, {
+        path: '/gallery',
+        name: 'gallery',
+        component: GalleryPage
+    }, {
+        path: '/geoGsonGallery',
+        name: 'geoGsonGallery',
+        component: GeoJsonGallery
+    }, {
+        path: '/dbscan',
+        name: 'dbscan',
+        component: DBScanPage
     }
 ]
 

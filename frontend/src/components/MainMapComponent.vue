@@ -1,5 +1,6 @@
 <template>
     <div ref="map-root" style="width: 100%; height: 100%;"></div>
+    <SingleImageModal ref="singleImageModal"></SingleImageModal>
 </template>
 
 <script>
@@ -25,9 +26,13 @@
 
     import { getMapFromStorage } from '../storage/localstorage'
 
+    import SingleImageModal from './SingleImageModal.vue'
+
     export default {
         name: 'MainMapContainer',
-        components: {},
+        components: {
+            SingleImageModal
+        },
         props: {
             latitude: {
                 type: Number,
@@ -77,14 +82,29 @@
             })
             map.addLayer(this.markerLayer)
 
-            /*getAllPhotos().then((data) => {
-                this.addMarkerToMap(data)
-            })*/
+            map.on('click', (e) => {
+                const features = []
+                
+                this.map.forEachFeatureAtPixel(e.pixel, (feat) => {
+                    features.push(feat)
+                })
 
-            /*map.on('click', (e) => {
-                console.log('click')
-                console.log(e)
-            })*/
+                console.log(features)
+
+                for(const feature of features) {
+                    console.log(feature.getGeometry().getType())
+                    if (feature && feature.getGeometry().getType() == 'Point') {
+                        //var coordinate = evt.coordinate;    //default projection is EPSG:3857 you may want to use ol.proj.transform
+                        const filename = feature.get('filename')
+                        
+                        //this.$refs.singleImageModal.showModal()
+                        this.$refs.singleImageModal.showImage(filename)
+                    }
+                }
+
+                
+            })
+
             this.map = map
 
 
@@ -111,9 +131,8 @@
             setGeoJsonLayer() {
                 const features = []
 
-                // Iterate over each GeoJSON object in the array
                 this.geojson.forEach((geojson, geoJsonIndex) => {
-                    // Read features from each GeoJSON object
+
                     const geojsonFeatures = new GeoJSON().readFeatures(geojson)
 
                     let filteredFeatures = geojsonFeatures.filter((feature, featureIndex) => {
@@ -121,13 +140,11 @@
                         return this.selectedFeatures.get(key) 
                     })
 
-                    // Transform the coordinates to match the map's projection
                     filteredFeatures.forEach((feature) => {
                         const geometry = feature.getGeometry();
                         geometry.transform('EPSG:4326', 'EPSG:3857')
                     })
                     
-                    // Add the features to the array
                     features.push(...filteredFeatures)
 
                 })
@@ -139,15 +156,6 @@
                 this.geoJsonLayer = new VectorLayer({
                     source: geoJsonSource,
                     style: new Style()
-                    /*style: new Style({
-                        stroke: new Stroke({
-                            color: 'red',
-                            width: 2,
-                        }),
-                        fill: new Fill({
-                            color: 'rgba(255, 0, 0, 0.1)',
-                        }),
-                    }),*/
                 })
                 this.map.addLayer(this.geoJsonLayer)
             },
@@ -166,7 +174,12 @@
                         geometry: new Point(transformedCoordinates)
                     })
 
-                    
+                    markerFeature.set('filename', photo.filename)
+
+                    if(features.length == 0) {
+                        markerSource.addFeature(markerFeature)
+                        continue
+                    }
 
                     for(let index = 0; index < features.length; index++) {
                         const geoJsonGeometry = features[index].getGeometry()
@@ -189,7 +202,7 @@
             },
             styleFunction(feature) {
                 const photoCount = feature.get('photoCount') || 0
-                const colorScale = chroma.scale(['yellow', 'red']).domain([0, 2]); // Esempio di scala di colori
+                const colorScale = chroma.scale(['yellow', 'red']).domain([0, 2])
                 const color = colorScale(photoCount).alpha(0.1).hex();
 
                 return new Style({

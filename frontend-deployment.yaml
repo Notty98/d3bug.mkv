@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: frontend
   template:
     metadata:
       labels:
-        app: backend
+        app: frontend
     spec:
       containers:
         - name: app
-          image: thenotty/backend
+          image: thenotty/frontend
           ports:
-            - containerPort: 9090
+            - containerPort: 8080

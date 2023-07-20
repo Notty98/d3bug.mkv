@@ -1,6 +1,7 @@
 FROM node:16
 
 RUN mkdir -p /media
+COPY ./seedImages/ /media/
 
 RUN mkdir -p /usr/src/backend
 WORKDIR /usr/src/backend
@@ -11,6 +12,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 9090
 
 CMD [ "npm", "run", "serve" ]

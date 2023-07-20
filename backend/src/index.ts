@@ -17,11 +17,6 @@ app.use(cors({
     origin: 'http://localhost:8080'
 }))
 
-//const db = require('./db/index')
-// initialize the database
-import { createDefaultTable } from './db/index'
-createDefaultTable()
-
 // set the static folder of images
 app.use(process.env.EXPRESS_STATIC_FILE_API!, express.static(process.env.MULTER_DESTINATION!))
 
@@ -30,6 +25,19 @@ import { router as api } from './api/index'
 
 app.use('/api', api)
 
-app.listen(port, () => {
-    console.log(`Listening on ${port}`)
-})
+// initialize the database
+import { createDefaultTable, handleReconnectionPolicy } from './db/index'
+
+// when deploying the app on kubernetes it is not possible to know if the db is already started so use handleReconnectionPolicy to handle this case and starting to accept connection when db is ready
+
+handleReconnectionPolicy(parseInt(process.env.POSTGRES_RECONNECTION_POLICY_MAX_ATTEMPTS!), parseInt(process.env.POSTGRES_RECONNECTION_POLICY_DELAY!))
+    .then(async (data) => {
+        await createDefaultTable()
+
+        app.listen(port, () => {
+            console.log(`Listening on ${port}`)
+        })
+    })
+    .catch(err => {
+        console.log(err)
+    })

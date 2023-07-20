@@ -7,7 +7,7 @@ metadata:
   name: postgresdb
 spec:
   # Replicas for this Deployment
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: postgresdb

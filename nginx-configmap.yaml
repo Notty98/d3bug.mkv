@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes  1;
+    events {
+      worker_connections  10240;
+    }
+    http {
+      server {
+        listen 80;
+        server_name localhost;
+        client_max_body_size 50M;
+
+        location /api {
+            proxy_pass http://backend:9090;
+        }
+
+        location /resources {
+            proxy_pass http://backend:9090;
+        }
+
+        location / {
+            proxy_no_cache 1;
+            proxy_cache_bypass 1;
+            
+            proxy_pass http://frontend:8080;
+        }
+      }
+    }

@@ -40,7 +40,45 @@ const getAllGeoJson = async (req: Request, res: Response, next: any) => {
     }
 }
 
+const removeAllGeoJsons = async (req: Request, res: Response, next: any) => {
+    console.log(`Removing ALL GeoJsons`)
+    try {
+
+        const result = await query(`
+            DELETE FROM ${process.env.POSTGRES_GEOJSON_TABLE!}
+            RETURNING ${process.env.POSTGRES_GEOJSON_TABLE_ID!};
+        `, [])
+
+        return res.status(200).json({ data: result.rows, length: result.rowCount })
+    } catch (err) {
+        return next(err)
+    }
+}
+
+const removeGeoJsonById = async (req: Request, res: Response, next: any) => {
+    console.log(`Removing GeoJson with id`)
+    try {
+        const id = req.params.id
+
+        if(!id) {
+            return res.status(400).json({ message: 'missing id' })
+        }
+
+        const result = await query(`
+            DELETE FROM ${process.env.POSTGRES_GEOJSON_TABLE!}
+            WHERE ${process.env.POSTGRES_GEOJSON_TABLE_ID!} = $1
+            RETURNING ${process.env.POSTGRES_GEOJSON_TABLE_ID!};
+        `, [id])
+
+        return res.status(200).json({ data: result.rows, length: result.rowCount })
+    } catch (err) {
+        return next(err)
+    }
+}
+
 export {
     addGeoJson,
-    getAllGeoJson
+    getAllGeoJson,
+    removeGeoJsonById,
+    removeAllGeoJsons
 }
