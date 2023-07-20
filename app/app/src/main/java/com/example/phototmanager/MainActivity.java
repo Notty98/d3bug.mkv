@@ -1,71 +1,52 @@
 package com.example.phototmanager;
 
-import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.rgb;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.phototmanager.config.AppConfig;
 import com.mapbox.geojson.Point;
-import com.mapbox.mapboxsdk.style.expressions.Expression;
-import com.mapbox.mapboxsdk.style.layers.CircleLayer;
-import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
+import com.mapbox.maps.MapView;
 import com.mapbox.maps.MapboxMap;
-import com.mapbox.maps.QueriedFeature;
-import com.mapbox.maps.RenderedQueryGeometry;
-import com.mapbox.maps.RenderedQueryOptions;
-import com.mapbox.maps.ScreenBox;
-import com.mapbox.maps.ScreenCoordinate;
-import com.mapbox.maps.extension.style.image.ImageNinePatchExtensionImpl;
-import com.mapbox.maps.extension.style.image.ImageUtils;
-import com.mapbox.maps.extension.style.layers.properties.generated.TextAnchor;
+import com.mapbox.maps.plugin.annotation.AnnotationConfig;
 import com.mapbox.maps.plugin.annotation.AnnotationPlugin;
+import com.mapbox.maps.plugin.annotation.AnnotationPluginImplKt;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManagerKt;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
-import com.mapbox.maps.plugin.gestures.GesturesUtils;
-import com.squareup.picasso.Picasso;
+import com.mapbox.maps.viewannotation.ViewAnnotationManager;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,24 +56,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.RequestBody;
-
-import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import com.mapbox.maps.MapView;
-import com.mapbox.maps.Style;
-import com.mapbox.geojson.Point;
-import com.mapbox.maps.MapView;
-import com.mapbox.maps.Style;
-import com.mapbox.maps.plugin.annotation.AnnotationPlugin;
-import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
-import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
-
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -106,73 +69,38 @@ public class MainActivity extends AppCompatActivity {
     private ListItem list_collection;
     private CustomAdapter adapter;
     private CustomAdapter adapter_1;
-
-
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 1;
-
     private Button btnCamera;
     private Button submitButton;
-
     private Button newButton;
     private Button addButton;
-
     private EditText name;
-
     private EditText name1;
     private String photo_name;
-
     private String photo_name1;
     private EditText description;
-
     private EditText editTextInteger;
-
     private Button submit_int;
-
     private Button gallery_button;
-
     private String photo_description;
     private ActivityResultLauncher<Intent> cameraLauncher;
-
     private boolean isPhotoTaken = false;
-
     private int userInput;
-
-    View afterPhotoLayout;
-    Button search;
-
-    String finalUrl1;
-
-    String finalUrl2;
     private Spinner spinner;
     private Spinner spinner_1;
-
     private int selected_collection_1;
-
     private String id_collection;
-
-    List<String> collectionID = new ArrayList<>();
-    List<String> collectionNames = new ArrayList<>();
-
-    private static final String DOMAIN_NAME = "192.168.1.51:9090";
-    private static final String BASE_URL = "http://" + DOMAIN_NAME; // Replace with your API base URL
-
-    private  static final String COLLECTION_URL = BASE_URL + "/api/collections";
-
-    private static final String PHOTOS_PATH = "api/photos";
-
-    private static final String PHOTO_URL = BASE_URL + "/resources/";
-
     private MapView mapView;
     private Button button_map;
 
-    private MapboxMap mapboxMap;
-
-
-
+    View afterPhotoLayout;
+    Button search;
+    String finalUrl1;
+    List<String> collectionID = new ArrayList<>();
+    List<String> collectionNames = new ArrayList<>();
 
     @Override
     public void onBackPressed() {
-
         switchToMainLayout();
     }
 
@@ -189,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         spinner_1 = findViewById(R.id.spinner_1);
         Button submitButton_1 = findViewById(R.id.submitButton_1);
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, COLLECTION_URL, null,
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, AppConfig.COLLECTION_URL, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -237,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
                     selected_collection_1 = spinner_1.getSelectedItemPosition();
                     id_collection = collectionID.get(selected_collection_1);
-                    String url = COLLECTION_URL + "/" + id_collection + "/photos";
+                    String url = AppConfig.COLLECTION_URL + "/" + id_collection + "/photos";
 
                     JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,url, null,
                             new Response.Listener<JSONObject>() {
@@ -251,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
                                         collections.clear();
                                         for (int i = 0; i < dataArray.length(); i++) {
 
-                                                list_collection = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"), PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
+                                                list_collection = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"), AppConfig.PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
                                                 collections.add(list_collection);
                                             }
 
@@ -289,8 +217,8 @@ public class MainActivity extends AppCompatActivity {
         ListView listView = findViewById(R.id.list);
         Uri.Builder new_builder = new Uri.Builder();
         new_builder.scheme("http")
-                .encodedAuthority(DOMAIN_NAME)
-                .appendEncodedPath(PHOTOS_PATH)
+                .encodedAuthority(AppConfig.baseApiUrl)
+                .appendEncodedPath(AppConfig.PHOTOS_PATH)
                 .appendQueryParameter("n", String.valueOf(userInput))
                 .appendQueryParameter("lat", String.valueOf(currentLatitude))
                 .appendQueryParameter("lon", String.valueOf(currentLongitude));
@@ -305,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
                             for(int i = 0; i< userInput ;i++)
 
                             {
-                                listItem = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"),PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
+                                listItem = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"),AppConfig.PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
                                 // listItem = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"),"http://192.168.5.80:8080/resources/" + response.getJSONArray("data").getJSONObject(i).getString("filename"));
                                 items.add(listItem);
                             }
@@ -335,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
         spinner = findViewById(R.id.spinner);
 
 
-        finalUrl1 = COLLECTION_URL;
+        finalUrl1 = AppConfig.COLLECTION_URL;
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, finalUrl1, null,
                 new Response.Listener<JSONObject>() {
@@ -506,6 +434,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 setContentView(R.layout.openmap_layout);
+
+                mapView = findViewById(R.id.openmap);
+
+                AnnotationPlugin annotationPlugin = AnnotationPluginImplKt.getAnnotations(mapView);
+                PointAnnotationManager pointAnnotationManagerKt = PointAnnotationManagerKt.createPointAnnotationManager(annotationPlugin, new AnnotationConfig());
+
+                Bitmap iconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.custom_marker);
+
+                PointAnnotationOptions pointAnnotationOptions = new PointAnnotationOptions()
+                        .withPoint(Point.fromLngLat(-74.035036, 40.747997))
+                        .withIconImage(iconBitmap);
+
+
+                pointAnnotationManagerKt.create(pointAnnotationOptions);
 
             }
         });

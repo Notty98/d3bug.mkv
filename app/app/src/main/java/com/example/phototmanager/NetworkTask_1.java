@@ -3,6 +3,8 @@ package com.example.phototmanager;
 import android.net.Uri;
 import android.os.AsyncTask;
 
+import com.example.phototmanager.config.AppConfig;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -14,7 +16,7 @@ import okhttp3.Response;
 
 public class NetworkTask_1 extends AsyncTask<Void, Void, String> {
 
-    private static final String BASE_URL = "http://192.168.1.51:9090/api/collections/";
+    private static final String BASE_URL = AppConfig.BASE_URL_WITH_SCHEMA;
    //private static final String BASE_URL = "http://192.168.5.80:8080/api/collections";
 
     private final File imageFile;
