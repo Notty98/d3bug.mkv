@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Icon;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -37,15 +36,14 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.phototmanager.config.AppConfig;
 import com.mapbox.geojson.Point;
+import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.MapView;
-import com.mapbox.maps.MapboxMap;
 import com.mapbox.maps.plugin.annotation.AnnotationConfig;
 import com.mapbox.maps.plugin.annotation.AnnotationPlugin;
 import com.mapbox.maps.plugin.annotation.AnnotationPluginImplKt;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManagerKt;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
-import com.mapbox.maps.viewannotation.ViewAnnotationManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -98,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
     String finalUrl1;
     List<String> collectionID = new ArrayList<>();
     List<String> collectionNames = new ArrayList<>();
+
+
 
     @Override
     public void onBackPressed() {
@@ -433,21 +433,62 @@ public class MainActivity extends AppCompatActivity {
         button_map.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 setContentView(R.layout.openmap_layout);
 
+                CameraOptions camera = new CameraOptions.Builder()
+                        .center(Point.fromLngLat( 4.3517,50.8503))
+                        .zoom(5.0)
+                        .build();
                 mapView = findViewById(R.id.openmap);
-
-                AnnotationPlugin annotationPlugin = AnnotationPluginImplKt.getAnnotations(mapView);
-                PointAnnotationManager pointAnnotationManagerKt = PointAnnotationManagerKt.createPointAnnotationManager(annotationPlugin, new AnnotationConfig());
-
-                Bitmap iconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.custom_marker);
-
-                PointAnnotationOptions pointAnnotationOptions = new PointAnnotationOptions()
-                        .withPoint(Point.fromLngLat(-74.035036, 40.747997))
-                        .withIconImage(iconBitmap);
+                mapView.getMapboxMap().setCamera(camera);
 
 
-                pointAnnotationManagerKt.create(pointAnnotationOptions);
+
+                JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,AppConfig.GET_ALL_PHOTOS, null,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+
+                                    JSONArray dataArray = response.getJSONArray("data");
+                                    System.out.println(dataArray);
+
+
+                                    for (int i = 0; i < dataArray.length(); i++) {
+                                        JSONObject dataObj = dataArray.getJSONObject(i);
+                                        JSONObject photo_position = dataObj.getJSONObject("photo_position");
+                                        AnnotationPlugin annotationPlugin = AnnotationPluginImplKt.getAnnotations(mapView);
+                                        PointAnnotationManager pointAnnotationManagerKt = PointAnnotationManagerKt.createPointAnnotationManager(annotationPlugin, new AnnotationConfig());
+
+                                        Bitmap iconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.custom_marker);
+
+                                        PointAnnotationOptions pointAnnotationOptions = new PointAnnotationOptions()
+                                                .withPoint(Point.fromLngLat(photo_position.getDouble("x"), photo_position.getDouble("y")))
+                                                .withIconImage(iconBitmap);
+
+
+                                        pointAnnotationManagerKt.create(pointAnnotationOptions);
+
+
+                                    }
+
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error){
+                                error.printStackTrace();
+                            }
+                        }
+                );
+                Volley.newRequestQueue(MainActivity.this).add(request);
+
+
+
 
             }
         });
