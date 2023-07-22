@@ -112,6 +112,59 @@ public class MainActivity extends AppCompatActivity {
         currentLongitude = longitude;
     }
 
+    public void OpenMap(){
+        setContentView(R.layout.openmap_layout);
+        CameraOptions camera = new CameraOptions.Builder()
+                .center(Point.fromLngLat( 4.3517,50.8503))
+                .zoom(5.0)
+                .build();
+        mapView = findViewById(R.id.openmap);
+        mapView.getMapboxMap().setCamera(camera);
+
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,AppConfig.GET_ALL_PHOTOS, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+
+                            JSONArray dataArray = response.getJSONArray("data");
+                            System.out.println(dataArray);
+
+
+                            for (int i = 0; i < dataArray.length(); i++) {
+                                JSONObject dataObj = dataArray.getJSONObject(i);
+                                JSONObject photo_position = dataObj.getJSONObject("photo_position");
+                                AnnotationPlugin annotationPlugin = AnnotationPluginImplKt.getAnnotations(mapView);
+                                PointAnnotationManager pointAnnotationManagerKt = PointAnnotationManagerKt.createPointAnnotationManager(annotationPlugin, new AnnotationConfig());
+
+                                Bitmap iconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.custom_marker);
+
+                                PointAnnotationOptions pointAnnotationOptions = new PointAnnotationOptions()
+                                        .withPoint(Point.fromLngLat(photo_position.getDouble("x"), photo_position.getDouble("y")))
+                                        .withIconImage(iconBitmap);
+
+
+                                pointAnnotationManagerKt.create(pointAnnotationOptions);
+
+
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error){
+                        error.printStackTrace();
+                    }
+                }
+        );
+        Volley.newRequestQueue(MainActivity.this).add(request);
+
+    }
     public void OpenGallery(){
         setContentView(R.layout.gallery_layout);
         spinner_1 = findViewById(R.id.spinner_1);
@@ -338,6 +391,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void switchToMainLayout(){
         setContentView(R.layout.activity_main);
+        button_map = findViewById(R.id.button_map);
+        button_map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                OpenMap();
+            }
+        });
         btnCamera = findViewById(R.id.button_camera);
         getCurrentLocation();
         updatePosition(currentLatitude,currentLongitude);
@@ -393,6 +453,7 @@ public class MainActivity extends AppCompatActivity {
 
         items.clear();
         MakeGetRequest_list();
+
     }
 
 
@@ -433,63 +494,7 @@ public class MainActivity extends AppCompatActivity {
         button_map.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                setContentView(R.layout.openmap_layout);
-
-                CameraOptions camera = new CameraOptions.Builder()
-                        .center(Point.fromLngLat( 4.3517,50.8503))
-                        .zoom(5.0)
-                        .build();
-                mapView = findViewById(R.id.openmap);
-                mapView.getMapboxMap().setCamera(camera);
-
-
-
-                JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,AppConfig.GET_ALL_PHOTOS, null,
-                        new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
-
-                                    JSONArray dataArray = response.getJSONArray("data");
-                                    System.out.println(dataArray);
-
-
-                                    for (int i = 0; i < dataArray.length(); i++) {
-                                        JSONObject dataObj = dataArray.getJSONObject(i);
-                                        JSONObject photo_position = dataObj.getJSONObject("photo_position");
-                                        AnnotationPlugin annotationPlugin = AnnotationPluginImplKt.getAnnotations(mapView);
-                                        PointAnnotationManager pointAnnotationManagerKt = PointAnnotationManagerKt.createPointAnnotationManager(annotationPlugin, new AnnotationConfig());
-
-                                        Bitmap iconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.custom_marker);
-
-                                        PointAnnotationOptions pointAnnotationOptions = new PointAnnotationOptions()
-                                                .withPoint(Point.fromLngLat(photo_position.getDouble("x"), photo_position.getDouble("y")))
-                                                .withIconImage(iconBitmap);
-
-
-                                        pointAnnotationManagerKt.create(pointAnnotationOptions);
-
-
-                                    }
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error){
-                                error.printStackTrace();
-                            }
-                        }
-                );
-                Volley.newRequestQueue(MainActivity.this).add(request);
-
-
-
-
+                OpenMap();
             }
         });
 
