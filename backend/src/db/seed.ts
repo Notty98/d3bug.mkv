@@ -11,31 +11,31 @@ const seedCollection = async () => {
 
     const resultFirstQuery = await query(`
         INSERT INTO ${process.env.POSTGRES_COLLECTIONS_TABLE!}
-        (${process.env.POSTGRES_COLLECTIONS_TABLE_ID!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_NAME!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_DESC!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_TIMESTAMP!})
+        (${process.env.POSTGRES_COLLECTIONS_TABLE_NAME!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_DESC!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_TIMESTAMP!})
         VALUES 
-        ($1, $2, $3, to_timestamp($4))
+        ($1, $2, to_timestamp($3))
         RETURNING ${process.env.POSTGRES_COLLECTIONS_TABLE_ID!};
-    `, [1, 'Un giorno a Reggio Emilia', 'Centro città', timestamp])
+    `, ['Un giorno a Reggio Emilia', 'Centro città', timestamp])
 
     idObject.reggioEmiliaCollection = resultFirstQuery.rows[0].collection_id
 
     const resultSecondQuery = await query(`
         INSERT INTO ${process.env.POSTGRES_COLLECTIONS_TABLE!}
-        (${process.env.POSTGRES_COLLECTIONS_TABLE_ID!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_NAME!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_DESC!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_TIMESTAMP!})
+        (${process.env.POSTGRES_COLLECTIONS_TABLE_NAME!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_DESC!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_TIMESTAMP!})
         VALUES 
-        ($1, $2, $3, to_timestamp($4))
+        ($1, $2, to_timestamp($3))
         RETURNING ${process.env.POSTGRES_COLLECTIONS_TABLE_ID!};
-    `, [2, 'Visita gastronomica a Rubiera', 'Uno dei borghi più belli d\'Italia', timestamp])
+    `, ['Visita gastronomica a Rubiera', 'Uno dei borghi più belli d\'Italia', timestamp])
 
     idObject.rubieraCollection = resultSecondQuery.rows[0].collection_id
 
     const resultThirdQuery = await query(`
         INSERT INTO ${process.env.POSTGRES_COLLECTIONS_TABLE!}
-        (${process.env.POSTGRES_COLLECTIONS_TABLE_ID!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_NAME!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_DESC!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_TIMESTAMP!})
+        (${process.env.POSTGRES_COLLECTIONS_TABLE_NAME!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_DESC!}, ${process.env.POSTGRES_COLLECTIONS_TABLE_TIMESTAMP!})
         VALUES 
-        ($1, $2, $3, to_timestamp($4))
+        ($1, $2, to_timestamp($3))
         RETURNING ${process.env.POSTGRES_COLLECTIONS_TABLE_ID!};
-    `, [3, 'Weekend a Parigi', 'no comment', timestamp])
+    `, ['Weekend a Parigi', 'no comment', timestamp])
 
     idObject.parigiCollection = resultThirdQuery.rows[0].collection_id
 
