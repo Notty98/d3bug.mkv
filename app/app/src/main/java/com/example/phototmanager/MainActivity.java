@@ -1,5 +1,6 @@
 package com.example.phototmanager;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -54,8 +56,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity {
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.drawerlayout.widget.DrawerLayout;
+import com.google.android.material.navigation.NavigationView;
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
@@ -68,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
     private CustomAdapter adapter;
     private CustomAdapter adapter_1;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 1;
-    private Button btnCamera;
     private Button submitButton;
     private Button newButton;
     private Button addButton;
@@ -79,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
     private EditText description;
     private EditText editTextInteger;
     private Button submit_int;
-    private Button gallery_button;
     private String photo_description;
     private ActivityResultLauncher<Intent> cameraLauncher;
     private boolean isPhotoTaken = false;
@@ -89,13 +94,13 @@ public class MainActivity extends AppCompatActivity {
     private int selected_collection_1;
     private String id_collection;
     private MapView mapView;
-    private Button button_map;
-
     View afterPhotoLayout;
-    Button search;
+
     String finalUrl1;
     List<String> collectionID = new ArrayList<>();
     List<String> collectionNames = new ArrayList<>();
+
+    ActionBarDrawerToggle toggle;
 
 
 
@@ -104,15 +109,96 @@ public class MainActivity extends AppCompatActivity {
         switchToMainLayout();
     }
 
+    private boolean isCameraAvailable() {
+        //Check if camera app is available
+        PackageManager packageManager = getPackageManager();
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        return cameraIntent.resolveActivity(packageManager) != null;
+    }
+
+    private void dispatchTakePictureIntent() {
+        //Create a new camera Intent and launch camera
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraLauncher.launch(takePictureIntent);
+    }
 
 
+
+    private void getCurrentLocation() {
+        // Check if location permissions are granted
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // Get the last known location
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+            if (lastKnownLocation != null) {
+                updatePosition(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+                Log.d("MainActivity", "Latitude: " + currentLatitude);
+                Log.d("MainActivity", "Longitude: " + currentLongitude);
+            } else {
+                Log.d("MainActivity", "Last known location is null");
+            }
+        } else {
+            Log.d("MainActivity", "Location permission not granted");
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getCurrentLocation();
+            } else {
+                Log.d("MainActivity", "Location permission denied");
+            }
+        }
+    }
+
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here
+        int id = item.getItemId();
+
+        if (id == R.id.nav_camera) {
+            openCamera();
+        } else if (id == R.id.nav_gallery) {
+            OpenGallery();
+        } else if (id == R.id.nav_map) {
+            OpenMap();
+        } else if (id == R.id.nav_search) {
+            Search();
+        }
+
+        return true;
+
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle ActionBar/Toolbar item clicks here.
+        if (toggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void openCamera() {
+        if (isCameraAvailable()) {
+            dispatchTakePictureIntent();
+            getCurrentLocation();
+            updatePosition(currentLatitude, currentLongitude);
+        } else {
+            Toast.makeText(MainActivity.this, "No camera app found", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void updatePosition(double latitude, double longitude) {
         currentLatitude = latitude;
         currentLongitude = longitude;
     }
 
-    public void OpenMap(){
+    private void OpenMap(){
         setContentView(R.layout.openmap_layout);
         CameraOptions camera = new CameraOptions.Builder()
                 .center(Point.fromLngLat( 4.3517,50.8503))
@@ -127,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-
+                            System.out.println(response);
                             JSONArray dataArray = response.getJSONArray("data");
                             System.out.println(dataArray);
 
@@ -167,6 +253,7 @@ public class MainActivity extends AppCompatActivity {
     }
     public void OpenGallery(){
         setContentView(R.layout.gallery_layout);
+        collectionNames.clear();
         spinner_1 = findViewById(R.id.spinner_1);
         Button submitButton_1 = findViewById(R.id.submitButton_1);
 
@@ -257,8 +344,6 @@ public class MainActivity extends AppCompatActivity {
                             // ...
                         }
                     });
-                    //RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
-                   // requestQueue.add(request);
                     Volley.newRequestQueue(MainActivity.this).add(request);
 
                 }
@@ -267,6 +352,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void MakeGetRequest_list(){
+        //Method for get a listview of n item selected by user
         ListView listView = findViewById(R.id.list);
         Uri.Builder new_builder = new Uri.Builder();
         new_builder.scheme("http")
@@ -287,7 +373,6 @@ public class MainActivity extends AppCompatActivity {
 
                             {
                                 listItem = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"),AppConfig.PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
-                                // listItem = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"),"http://192.168.5.80:8080/resources/" + response.getJSONArray("data").getJSONObject(i).getString("filename"));
                                 items.add(listItem);
                             }
 
@@ -302,8 +387,7 @@ public class MainActivity extends AppCompatActivity {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                // Code for handling errors
-                // ...
+               error.printStackTrace();
             }
         });
         Volley.newRequestQueue(this).add(request);
@@ -313,8 +397,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void MakeGetRequest_menu(){
+        //Method for get a spinner menu of collections
         spinner = findViewById(R.id.spinner);
-
 
         finalUrl1 = AppConfig.COLLECTION_URL;
 
@@ -361,7 +445,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void goToSecondLayout() {
+    public void Search() {
         try {
             setContentView(R.layout.input_integer);
             editTextInteger = findViewById(R.id.editTextInteger);
@@ -374,10 +458,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         int enteredInteger = Integer.parseInt(input);
                        userInput = enteredInteger;
-
-                        switchToMainLayout();
-                        // Do something with the entered integer
-                        // ...
+                       switchToMainLayout();
                     } catch (NumberFormatException e) {
                         Toast.makeText(MainActivity.this, "Invalid input", Toast.LENGTH_SHORT).show();
                     }
@@ -391,77 +472,45 @@ public class MainActivity extends AppCompatActivity {
 
     public void switchToMainLayout(){
         setContentView(R.layout.activity_main);
-        button_map = findViewById(R.id.button_map);
-        button_map.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OpenMap();
-            }
-        });
-        btnCamera = findViewById(R.id.button_camera);
+        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.navigation_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        // Set up the hamburger icon and handle opening/closing the drawer
+        toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        // Enable the hamburger icon in the ActionBar/Toolbar
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         getCurrentLocation();
         updatePosition(currentLatitude,currentLongitude);
         System.out.println(currentLatitude + currentLongitude);
-        gallery_button =findViewById(R.id.gallery);
-        gallery_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OpenGallery();
-            }
-        });
-        search = findViewById(R.id.search);
-        search.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                goToSecondLayout();
-            }
-        });
-
-        btnCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PackageManager packageManager = getPackageManager();
-                if (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
-                    if (cameraLauncher != null) {
-                        try {
-                            // Launch the camera
-                            cameraLauncher.launch(null);
-                        } catch (Exception e) {
-                            Toast.makeText(MainActivity.this, "Failed to launch camera", Toast.LENGTH_SHORT).show();
-                            e.printStackTrace();
-                        }
-                    } else {
-                        // No camera available on the device
-                        Toast.makeText(MainActivity.this, "No camera available", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        });
-
-        btnCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isCameraAvailable()) {
-                    dispatchTakePictureIntent();
-                    getCurrentLocation();
-                    updatePosition(currentLatitude, currentLongitude);
-                } else {
-                    Toast.makeText(MainActivity.this, "No camera app found", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
 
         items.clear();
         MakeGetRequest_list();
 
     }
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.navigation_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        // Set up the hamburger icon and handle opening/closing the drawer
+        toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        // Enable the hamburger icon in the ActionBar/Toolbar
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
 
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -489,49 +538,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        button_map = findViewById(R.id.button_map);
-        mapView = findViewById(R.id.openmap);
-        button_map.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OpenMap();
-            }
-        });
-
-
-
-
-
         updatePosition(currentLatitude, currentLongitude);
         System.out.println(currentLatitude + currentLongitude);
-        search = findViewById(R.id.search);
-        search.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                goToSecondLayout();
-            }
-        });
 
-
-
-
+        //Pass to a new layout after taken a photo with camera
         LayoutInflater inflater = LayoutInflater.from(this);
         afterPhotoLayout = inflater.inflate(R.layout.input_layout, null);
-        //insertInt = inflater.inflate(R.layout.input_integer,null);
 
-        btnCamera = findViewById(R.id.button_camera);
-        gallery_button = findViewById(R.id.gallery);
-
-
-       // setContentView(R.layout.input_integer);
-
-
-        gallery_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OpenGallery();
-            }
-        });
 
         cameraLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -554,8 +567,8 @@ public class MainActivity extends AppCompatActivity {
 
                                 if(isPhotoTaken){
                                     setContentView(R.layout.add_or_new_layout);
-                                    newButton = findViewById(R.id.newButton);
-                                    addButton = findViewById(R.id.addButton);
+                                    newButton = findViewById(R.id.newButton);//add photo to a new collection
+                                    addButton = findViewById(R.id.addButton);//add photo to an existing collection
 
                                     try {
                                         newButton.setOnClickListener(new View.OnClickListener() {
@@ -576,8 +589,8 @@ public class MainActivity extends AppCompatActivity {
                                                             String new_filename = photo_name + ".jpg";
                                                             File new_file = new File(file.getParent(), new_filename);
                                                             file.renameTo(new_file);
-                                                            NetworkTask networkTask = new NetworkTask(new_file,photo_name,photo_description, currentLatitude,currentLongitude);
-                                                            networkTask.execute();
+                                                            Post_to_new_collection post_to_new_collection = new Post_to_new_collection(MainActivity.this,new_file,photo_name,photo_description, currentLatitude,currentLongitude);
+                                                            post_to_new_collection.execute();
                                                             switchToMainLayout();
 
                                                         }
@@ -615,8 +628,8 @@ public class MainActivity extends AppCompatActivity {
                                                                String new_filename = photo_name1 + ".jpg";
                                                                File new_file = new File(file.getParent(), new_filename);
                                                                file.renameTo(new_file);
-                                                               NetworkTask_1 networkTask = new NetworkTask_1(new_file,id_collection, currentLatitude, currentLongitude);
-                                                               networkTask.execute();
+                                                               Post_to_id_collection post_to_id_collection= new Post_to_id_collection(MainActivity.this,new_file,id_collection, currentLatitude, currentLongitude);
+                                                               post_to_id_collection.execute();
                                                                switchToMainLayout();
 
                                                            }
@@ -634,79 +647,15 @@ public class MainActivity extends AppCompatActivity {
 
                                 }
 
-                                // Use the file object as needed
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                // Handle the exception
+
                             }
 
 
-
-                        // The photo was taken successfully
-                        // You can access the captured image using result.getData()
-
                     } else {
-                        // Handle the case when the camera activity was canceled or failed
                         Toast.makeText(this, "Camera capture canceled or failed", Toast.LENGTH_SHORT).show();
                     }
                 });
-
-        btnCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isCameraAvailable()) {
-                    dispatchTakePictureIntent();
-                    getCurrentLocation();
-                    updatePosition(currentLatitude, currentLongitude);
-                } else {
-                    Toast.makeText(MainActivity.this, "No camera app found", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-}
-
-    private boolean isCameraAvailable() {
-        PackageManager packageManager = getPackageManager();
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        return cameraIntent.resolveActivity(packageManager) != null;
     }
-
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraLauncher.launch(takePictureIntent);
-    }
-
-
-
-    private void getCurrentLocation() {
-        // Check if location permissions are granted
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            // Get the last known location
-            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-            if (lastKnownLocation != null) {
-                updatePosition(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-                Log.d("MainActivity", "Latitude: " + currentLatitude);
-                Log.d("MainActivity", "Longitude: " + currentLongitude);
-            } else {
-                Log.d("MainActivity", "Last known location is null");
-            }
-        } else {
-            Log.d("MainActivity", "Location permission not granted");
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getCurrentLocation();
-            } else {
-                Log.d("MainActivity", "Location permission denied");
-            }
-        }
-    }
-
 }

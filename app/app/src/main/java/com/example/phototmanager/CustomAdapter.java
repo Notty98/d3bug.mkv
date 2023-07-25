@@ -12,6 +12,8 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
+//Custom adapter for make the listview with image and filename
+
 public class CustomAdapter extends ArrayAdapter<ListItem> {
     private Context context;
     private ArrayList<ListItem> items;
