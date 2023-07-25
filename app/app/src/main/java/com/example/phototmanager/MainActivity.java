@@ -38,6 +38,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.phototmanager.config.AppConfig;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.mapbox.geojson.Point;
 import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.MapView;
@@ -61,9 +66,10 @@ import java.util.Objects;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.google.android.material.navigation.NavigationView;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
@@ -96,6 +102,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String id_collection;
     private MapView mapView;
     private static final int PERMISSION_REQUEST_CODE = 123;
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private LocationCallback locationCallback;
     View afterPhotoLayout;
 
     String finalUrl1;
@@ -103,7 +111,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     List<String> collectionNames = new ArrayList<>();
 
     ActionBarDrawerToggle toggle;
-
 
 
     @Override
@@ -123,7 +130,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraLauncher.launch(takePictureIntent);
     }
-
 
 
     private void getCurrentLocation() {
@@ -150,7 +156,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getCurrentLocation();
+                //getCurrentLocation();
+                requestLocationUpdates();
             } else {
                 Log.d("MainActivity", "Location permission denied");
             }
@@ -176,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
 
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle ActionBar/Toolbar item clicks here.
@@ -200,17 +208,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         currentLongitude = longitude;
     }
 
-    private void OpenMap(){
+    private void OpenMap() {
         setContentView(R.layout.openmap_layout);
         CameraOptions camera = new CameraOptions.Builder()
-                .center(Point.fromLngLat( 4.3517,50.8503))
+                .center(Point.fromLngLat(4.3517, 50.8503))
                 .zoom(5.0)
                 .build();
         mapView = findViewById(R.id.openmap);
         mapView.getMapboxMap().setCamera(camera);
 
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,AppConfig.GET_ALL_PHOTOS, null,
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, AppConfig.GET_ALL_PHOTOS, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -245,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 },
                 new Response.ErrorListener() {
                     @Override
-                    public void onErrorResponse(VolleyError error){
+                    public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
                     }
                 }
@@ -253,7 +261,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Volley.newRequestQueue(MainActivity.this).add(request);
 
     }
-    public void OpenGallery(){
+
+    public void OpenGallery() {
         setContentView(R.layout.gallery_layout);
         collectionNames.clear();
         spinner_1 = findViewById(R.id.spinner_1);
@@ -302,58 +311,57 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         submitButton_1.setOnClickListener(new View.OnClickListener() {
 
 
-                @Override
-                public void onClick(View view) {
+            @Override
+            public void onClick(View view) {
 
-                    selected_collection_1 = spinner_1.getSelectedItemPosition();
-                    id_collection = collectionID.get(selected_collection_1);
-                    String url = AppConfig.COLLECTION_URL + "/" + id_collection + "/photos";
+                selected_collection_1 = spinner_1.getSelectedItemPosition();
+                id_collection = collectionID.get(selected_collection_1);
+                String url = AppConfig.COLLECTION_URL + "/" + id_collection + "/photos";
 
-                    JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,url, null,
-                            new Response.Listener<JSONObject>() {
+                JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+                        new Response.Listener<JSONObject>() {
 
-                                @Override
-                                public void onResponse(JSONObject response) {
+                            @Override
+                            public void onResponse(JSONObject response) {
 
-                                    try {
+                                try {
 
-                                        JSONArray dataArray = response.getJSONArray("data");
-                                        collections.clear();
-                                        for (int i = 0; i < dataArray.length(); i++) {
+                                    JSONArray dataArray = response.getJSONArray("data");
+                                    collections.clear();
+                                    for (int i = 0; i < dataArray.length(); i++) {
 
-                                                list_collection = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"), AppConfig.PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
-                                                collections.add(list_collection);
-                                            }
+                                        list_collection = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"), AppConfig.PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
+                                        collections.add(list_collection);
+                                    }
 
-                                            setContentView(R.layout.collection_view);
-                                            ListView list_collection_view = findViewById(R.id.list_1);
-                                            adapter_1 = new CustomAdapter(MainActivity.this, collections);
-                                            list_collection_view.setAdapter(adapter_1);
-
-
+                                    setContentView(R.layout.collection_view);
+                                    ListView list_collection_view = findViewById(R.id.list_1);
+                                    adapter_1 = new CustomAdapter(MainActivity.this, collections);
+                                    list_collection_view.setAdapter(adapter_1);
 
 
-                                          } catch(Exception e){
-                                            e.printStackTrace();
-                                        }
-
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
-                            }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            // Code for handling errors
-                            error.printStackTrace();
-                            // ...
-                        }
-                    });
-                    Volley.newRequestQueue(MainActivity.this).add(request);
 
-                }
-            });
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Code for handling errors
+                        error.printStackTrace();
+                        // ...
+                    }
+                });
+                Volley.newRequestQueue(MainActivity.this).add(request);
+
+            }
+        });
 
 
     }
-    public void MakeGetRequest_list(){
+
+    public void MakeGetRequest_list() {
         //Method for get a listview of n item selected by user
         ListView listView = findViewById(R.id.list);
         Uri.Builder new_builder = new Uri.Builder();
@@ -371,14 +379,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            for(int i = 0; i< userInput ;i++)
-
-                            {
-                                listItem = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"),AppConfig.PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
+                            for (int i = 0; i < userInput; i++) {
+                                listItem = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"), AppConfig.PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
                                 items.add(listItem);
                             }
 
-                            adapter = new CustomAdapter(MainActivity.this,items);
+                            adapter = new CustomAdapter(MainActivity.this, items);
                             listView.setAdapter(adapter);
 
 
@@ -389,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-               error.printStackTrace();
+                error.printStackTrace();
             }
         });
         Volley.newRequestQueue(this).add(request);
@@ -397,8 +403,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-
-    public void MakeGetRequest_menu(){
+    public void MakeGetRequest_menu() {
         //Method for get a spinner menu of collections
         spinner = findViewById(R.id.spinner);
 
@@ -459,20 +464,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     // Parse the string input to an integer
                     try {
                         int enteredInteger = Integer.parseInt(input);
-                       userInput = enteredInteger;
-                       switchToMainLayout();
+                        userInput = enteredInteger;
+                        switchToMainLayout();
                     } catch (NumberFormatException e) {
                         Toast.makeText(MainActivity.this, "Invalid input", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    public void switchToMainLayout(){
+    public void switchToMainLayout() {
         setContentView(R.layout.activity_main);
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.navigation_view);
@@ -488,12 +493,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         getCurrentLocation();
-        updatePosition(currentLatitude,currentLongitude);
+        updatePosition(currentLatitude, currentLongitude);
         System.out.println(currentLatitude + currentLongitude);
 
         items.clear();
         MakeGetRequest_list();
 
+    }
+
+    private void requestLocationUpdates() {
+        // Create a location request
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(10000); // Update location every 10 seconds
+
+        // Request location updates
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
+        }
     }
 
     @Override
@@ -514,6 +533,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Enable the hamburger icon in the ActionBar/Toolbar
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
+        // Initialize the FusedLocationProviderClient
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         // List of permissions to request
         String[] permissions = new String[]{
@@ -539,10 +560,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             // All permissions are already granted, proceed with your logic here
             // For example, call getCurrentLocation() method
-            getCurrentLocation();
+            //getCurrentLocation();
+            // Initialize the location callback
+            locationCallback = new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    if (locationResult != null) {
+                        Location location = locationResult.getLastLocation();
+                        if (location != null) {
+                            // Use the current location
+                            updatePosition(location.getLatitude(), location.getLongitude());
+                            Log.d("MainActivity", "Latitude: " + location.getLatitude());
+                            Log.d("MainActivity", "Longitude: " + location.getLongitude());
+                        }
+                    }
+                }
+            };
+
+            requestLocationUpdates();
         }
 
-        updatePosition(currentLatitude, currentLongitude);
+
         System.out.println(currentLatitude + currentLongitude);
 
         //Pass to a new layout after taken a photo with camera
