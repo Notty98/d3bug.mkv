@@ -1,5 +1,6 @@
 package com.example.phototmanager;
 
+//Create ListItem Object
 public class ListItem {
     private String text;
     private String imageUri;
