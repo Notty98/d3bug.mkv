@@ -1,5 +1,6 @@
 package com.example.phototmanager;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private int selected_collection_1;
     private String id_collection;
     private MapView mapView;
+    private static final int PERMISSION_REQUEST_CODE = 123;
     View afterPhotoLayout;
 
     String finalUrl1;
@@ -513,29 +515,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
 
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted, request it
+        // List of permissions to request
+        String[] permissions = new String[]{
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                android.Manifest.permission.CAMERA
+        };
+
+        // Check if permissions are not granted and request them
+        List<String> permissionsToRequest = new ArrayList<>();
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(permission);
+            }
+        }
+
+        if (!permissionsToRequest.isEmpty()) {
+            // Convert the list to an array and request the permissions together
             ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST_CODE);
-        }
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-
+                    permissionsToRequest.toArray(new String[0]), PERMISSION_REQUEST_CODE);
         } else {
+            // All permissions are already granted, proceed with your logic here
+            // For example, call getCurrentLocation() method
             getCurrentLocation();
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-                    || ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_MEDIA_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA, android.Manifest.permission.ACCESS_MEDIA_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-
-            }
-        } else {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, LOCATION_PERMISSION_REQUEST_CODE);
-            }
         }
 
         updatePosition(currentLatitude, currentLongitude);
