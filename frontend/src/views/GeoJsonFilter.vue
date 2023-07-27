@@ -54,7 +54,7 @@
                 return this.selectedFeatures.get(geoJsonKey + '-' + featuresKey)
             },
             tryToGetTheRightProperties(properties) {
-                const regex = /nome|name/u
+                const regex = /nome|name|ADMIN/u
                 let defaultString = null
                 for(const item of Object.keys(properties)) {
                     if(!defaultString) {

@@ -92,7 +92,7 @@
                 if(typeof feature === 'string') {
                     return feature
                 }
-                const regex = /nome|name/u
+                const regex = /nome|name|ADMIN/u
                 let defaultString = null
                 for(const item of Object.keys(feature.properties)) {
                     if(!defaultString) {
