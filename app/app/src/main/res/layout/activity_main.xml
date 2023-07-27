@@ -17,21 +17,10 @@
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/drawer_menu"
         >
-
     </com.google.android.material.navigation.NavigationView>
+
 
     <!-- Your main content layout here -->
     <!-- For example, you can include the MapView here -->
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
 
-
-        <ListView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/list"></ListView>
-
-    </RelativeLayout>
 </androidx.drawerlayout.widget.DrawerLayout>

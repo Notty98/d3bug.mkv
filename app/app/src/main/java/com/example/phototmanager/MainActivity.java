@@ -27,6 +27,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -65,6 +66,7 @@ import java.util.List;
 import java.util.Objects;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
@@ -110,7 +112,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     List<String> collectionID = new ArrayList<>();
     List<String> collectionNames = new ArrayList<>();
 
-    ActionBarDrawerToggle toggle;
+    private ActionBarDrawerToggle toggle;
+    private DrawerLayout drawerLayout;
+
+
+
 
 
     @Override
@@ -168,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here
+
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
@@ -179,7 +186,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_search) {
             Search();
         }
-
         return true;
 
     }
@@ -187,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle ActionBar/Toolbar item clicks here.
+
         if (toggle.onOptionsItemSelected(item)) {
             return true;
         }
@@ -264,6 +271,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void OpenGallery() {
         setContentView(R.layout.gallery_layout);
+
         collectionNames.clear();
         spinner_1 = findViewById(R.id.spinner_1);
         Button submitButton_1 = findViewById(R.id.submitButton_1);
@@ -335,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     }
 
                                     setContentView(R.layout.collection_view);
-                                    ListView list_collection_view = findViewById(R.id.list_1);
+                                    ListView list_collection_view = findViewById(R.id.list);
                                     adapter_1 = new CustomAdapter(MainActivity.this, collections);
                                     list_collection_view.setAdapter(adapter_1);
 
@@ -379,6 +387,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
+                            items.clear();
                             for (int i = 0; i < userInput; i++) {
                                 listItem = new ListItem(response.getJSONArray("data").getJSONObject(i).getString("filename"), AppConfig.PHOTO_URL + response.getJSONArray("data").getJSONObject(i).getString("filename"));
                                 items.add(listItem);
@@ -454,18 +463,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void Search() {
         try {
+
             setContentView(R.layout.input_integer);
             editTextInteger = findViewById(R.id.editTextInteger);
             submit_int = findViewById(R.id.submit_int);
             submit_int.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    setContentView(R.layout.collection_view);
                     String input = editTextInteger.getText().toString();
                     // Parse the string input to an integer
                     try {
                         int enteredInteger = Integer.parseInt(input);
                         userInput = enteredInteger;
-                        switchToMainLayout();
+                        MakeGetRequest_list();
+
+
+
                     } catch (NumberFormatException e) {
                         Toast.makeText(MainActivity.this, "Invalid input", Toast.LENGTH_SHORT).show();
                     }
@@ -479,9 +493,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void switchToMainLayout() {
         setContentView(R.layout.activity_main);
-        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
+
 
         // Set up the hamburger icon and handle opening/closing the drawer
         toggle = new ActionBarDrawerToggle(
@@ -490,15 +505,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
 
         // Enable the hamburger icon in the ActionBar/Toolbar
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
 
         getCurrentLocation();
         updatePosition(currentLatitude, currentLongitude);
         System.out.println(currentLatitude + currentLongitude);
 
-        items.clear();
-        MakeGetRequest_list();
+    }
 
+    private void requestLocationUpdates() {
+        // Create a location request
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(10000); // Update location every 10 seconds
+
+        // Request location updates
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
+        }
     }
 
     private void requestLocationUpdates() {
@@ -520,7 +547,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -532,6 +559,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Enable the hamburger icon in the ActionBar/Toolbar
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
 
         // Initialize the FusedLocationProviderClient
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
