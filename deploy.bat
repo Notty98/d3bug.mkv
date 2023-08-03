@@ -22,3 +22,10 @@ kubectl apply -f .\nginx-service.yaml
 
 :: docker build -t thenotty/backend .
 :: docker push thenotty/backend
+
+:: minikube start
+:: minikube delete
+:: minikube start
+:: ./deploy.bat
+:: minikube dashboard
+:: kubectl port-forward deployment/nginx 80:80 --address 0.0.0.0

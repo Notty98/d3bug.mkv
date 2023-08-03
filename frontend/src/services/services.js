@@ -5,7 +5,7 @@ const urls =  {
     dev: 'localhost:9090'
 }
 
-export const currentUrl = urls.dev
+export const currentUrl = urls.production
 
 
 export const getCollections = async () => {
