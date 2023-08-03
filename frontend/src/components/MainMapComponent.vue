@@ -49,7 +49,9 @@
                 map: null,
                 markerLayer: null,
                 selectedFeatures: null,
-                geoJsonLayer: null
+                geoJsonLayer: null,
+                alpha: 0.1,
+                domain: [0, 10]
             }
         },
         created() {
@@ -202,8 +204,8 @@
             },
             styleFunction(feature) {
                 const photoCount = feature.get('photoCount') || 0
-                const colorScale = chroma.scale(['yellow', 'red']).domain([0, 2])
-                const color = colorScale(photoCount).alpha(0.1).hex();
+                const colorScale = chroma.scale(['blue', 'red']).domain(this.domain)
+                const color = colorScale(photoCount).alpha(this.alpha).hex();
 
                 return new Style({
                     fill: new Fill({ color }),
