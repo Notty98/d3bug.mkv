@@ -1,7 +1,7 @@
 package com.example.phototmanager.config;
 
 public class AppConfig {
-    private static final String baseApiIP = "192.168.1.81";
+    private static final String baseApiIP = "192.168.5.80";
     private static final String port_dev = "9090";
     private static final String port_production = "80";
     public static final String baseApiUrl = baseApiIP + ":" + port_dev;

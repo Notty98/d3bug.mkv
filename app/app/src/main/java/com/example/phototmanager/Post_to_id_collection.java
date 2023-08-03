@@ -79,9 +79,9 @@ public class Post_to_id_collection extends AsyncTask<Void, Void, String> {
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
         if (result != null) {
-
+            Toast.makeText(context,"Uploaded photo to collection",Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(context,"Failed to uplod data",Toast.LENGTH_SHORT).show();
+            Toast.makeText(context,"Failed to upload data",Toast.LENGTH_SHORT).show();
         }
     }
 }

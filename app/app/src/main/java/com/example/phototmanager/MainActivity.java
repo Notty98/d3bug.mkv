@@ -16,6 +16,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -64,6 +65,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Stack;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.view.GravityCompat;
@@ -116,13 +118,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout drawerLayout;
 
 
-
-
-
     @Override
     public void onBackPressed() {
-        switchToMainLayout();
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            switchToMainLayout();
+        }
     }
+
+
 
     private boolean isCameraAvailable() {
         //Check if camera app is available
@@ -186,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_search) {
             Search();
         }
+        drawerLayout.closeDrawer(GravityCompat.START);
         return true;
 
     }
@@ -193,11 +199,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle ActionBar/Toolbar item clicks here.
-
-        if (toggle.onOptionsItemSelected(item)) {
+        if (item.getItemId() == android.R.id.home) {
+            // Back button (home button) is pressed, open or close the drawer based on its state
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
+
     }
 
     private void openCamera() {
@@ -208,15 +220,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             Toast.makeText(MainActivity.this, "No camera app found", Toast.LENGTH_SHORT).show();
         }
+
     }
 
     private void updatePosition(double latitude, double longitude) {
         currentLatitude = latitude;
         currentLongitude = longitude;
+
     }
 
     private void OpenMap() {
         setContentView(R.layout.openmap_layout);
+        initialize_toggle();
+
         CameraOptions camera = new CameraOptions.Builder()
                 .center(Point.fromLngLat(4.3517, 50.8503))
                 .zoom(5.0)
@@ -267,11 +283,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         );
         Volley.newRequestQueue(MainActivity.this).add(request);
 
+
+    }
+
+    private void initialize_toggle() {
+        drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.navigation_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        // Set up the hamburger icon and handle opening/closing the drawer
+        toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        // Enable the hamburger icon in the ActionBar/Toolbar
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
     }
 
     public void OpenGallery() {
         setContentView(R.layout.gallery_layout);
-
+        initialize_toggle();
         collectionNames.clear();
         spinner_1 = findViewById(R.id.spinner_1);
         Button submitButton_1 = findViewById(R.id.submitButton_1);
@@ -321,7 +354,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             @Override
             public void onClick(View view) {
-
                 selected_collection_1 = spinner_1.getSelectedItemPosition();
                 id_collection = collectionID.get(selected_collection_1);
                 String url = AppConfig.COLLECTION_URL + "/" + id_collection + "/photos";
@@ -343,6 +375,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     }
 
                                     setContentView(R.layout.collection_view);
+                                    initialize_toggle();
                                     ListView list_collection_view = findViewById(R.id.list);
                                     adapter_1 = new CustomAdapter(MainActivity.this, collections);
                                     list_collection_view.setAdapter(adapter_1);
@@ -365,6 +398,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             }
         });
+
 
 
     }
@@ -465,12 +499,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
 
             setContentView(R.layout.input_integer);
+            initialize_toggle();
             editTextInteger = findViewById(R.id.editTextInteger);
             submit_int = findViewById(R.id.submit_int);
             submit_int.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     setContentView(R.layout.collection_view);
+                    initialize_toggle();
                     String input = editTextInteger.getText().toString();
                     // Parse the string input to an integer
                     try {
@@ -493,39 +529,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void switchToMainLayout() {
         setContentView(R.layout.activity_main);
-        drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.navigation_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-
-        // Set up the hamburger icon and handle opening/closing the drawer
-        toggle = new ActionBarDrawerToggle(
-                this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-
-        // Enable the hamburger icon in the ActionBar/Toolbar
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-
+        initialize_toggle();
         getCurrentLocation();
         updatePosition(currentLatitude, currentLongitude);
-        System.out.println(currentLatitude + currentLongitude);
 
-    }
 
-    private void requestLocationUpdates() {
-        // Create a location request
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(10000); // Update location every 10 seconds
-
-        // Request location updates
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
-        }
     }
 
     private void requestLocationUpdates() {
@@ -546,20 +554,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.navigation_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        // Set up the hamburger icon and handle opening/closing the drawer
-        toggle = new ActionBarDrawerToggle(
-                this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-
-        // Enable the hamburger icon in the ActionBar/Toolbar
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
+        initialize_toggle();
 
         // Initialize the FusedLocationProviderClient
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
@@ -607,9 +602,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             requestLocationUpdates();
         }
-
-
-        System.out.println(currentLatitude + currentLongitude);
 
         //Pass to a new layout after taken a photo with camera
         LayoutInflater inflater = LayoutInflater.from(this);

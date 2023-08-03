@@ -79,7 +79,7 @@ public class Post_to_new_collection extends AsyncTask<Void, Void, String> {
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
         if (result != null) {
-
+            Toast.makeText(context,"Created new collection",Toast.LENGTH_SHORT).show();
         } else {
            Toast.makeText(context, "Failed to upload data", Toast.LENGTH_SHORT).show();
         }
