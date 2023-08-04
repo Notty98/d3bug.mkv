@@ -45,7 +45,7 @@ docker build -t thenotty/frontend .
 docker push thenotty/frontend
 ```
 
-Finally, in the root of the project run `./deploy.bat`.
+Finally, in the root of the project run `./deploy.bat` (after the minikube's instances is started) and then use the command ` kubectl port-forward deployment/nginx 80:80 --address 0.0.0.0` to bind the local port to the nginx deployment.
 
 ## Execute the application on local machine
 
